@@ -1,5 +1,5 @@
 #include "foo.h"
 
 int foo() {
-    return 42;
+    return 43;
 }
