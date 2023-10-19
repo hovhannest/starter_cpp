@@ -9,13 +9,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Option to enable testing
 option(ENABLE_TESTING "Enable testing" ON)
 
+# Option to specify the GTest installation directory
+set(GTEST_INSTALL_DIR "" CACHE PATH "Path to Google Test installation directory")
+
 if (ENABLE_TESTING)
     # Include testing-related code
     include(CTest)
     enable_testing()
 
-    # Set the installation path for Google Test relative to the root CMakeLists.txt
-    set(GTEST_INSTALL_DIR ${CMAKE_BINARY_DIR}/gtest)
+    if (NOT GTEST_INSTALL_DIR)
+        # Set the installation path for Google Test relative to the root CMakeLists.txt
+        set(GTEST_INSTALL_DIR ${CMAKE_BINARY_DIR}/gtest)
+    endif()
     
     # Download and build Google Test as an external project
     include(ExternalProject)
