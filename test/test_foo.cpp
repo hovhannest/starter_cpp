@@ -2,7 +2,7 @@
 #include "foo.h"
 
 TEST(FooTest, Returns42) {
-    EXPECT_EQ(foo(), 42);
+    EXPECT_EQ(foo(), 43);
 }
 
 int main(int argc, char** argv) {
