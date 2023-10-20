@@ -13,5 +13,5 @@ target_link_libraries(test_hello_world gtest my_functions)
 add_test(NAME test_hello_world COMMAND test_hello_world)
 
 if (MSVC)
-    target_compile_options(test_hello_world PRIVATE /Wall /wd4668 /wd4711 /wd4710)
+    target_compile_options(test_hello_world PRIVATE /wd5026 /wd5027 /wd5039 /wd4625 /wd4626 /wd4365 wd/4820 /wd4514)
 endif()
