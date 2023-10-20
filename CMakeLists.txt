@@ -39,6 +39,15 @@ add_executable(hello_world src/main.cpp)
 # Add a function library
 add_library(my_functions src/foo.cpp)
 
+# treat all warnings as errors
+if (MSVC)
+    target_compile_options(hello_world PRIVATE /Wall /WX /wd4668 /wd4711 /wd4710)
+    target_compile_options(my_functions PRIVATE /Wall /WX )
+else()
+    target_compile_options(hello_world PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(my_functions PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+
 # Include directories for headers
 target_include_directories(my_functions PUBLIC include)
 
