@@ -13,13 +13,6 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 endif()
 
-# treat all warnings as errors
-if (MSVC)
-    add_compile_options(/Wall /WX /wd4668 /wd4711 /wd4710)
-else()
-    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
-endif()
-
 # Option to enable testing
 option(ENABLE_TESTING "Enable testing" ON)
 
@@ -49,6 +42,15 @@ add_executable(hello_world src/main.cpp)
 
 # Add a function library
 add_library(my_functions src/foo.cpp)
+
+# treat all warnings as errors
+if (MSVC)
+    target_compile_options(hello_world PRIVATE /Wall /WX /wd4668 /wd4711 /wd4710)
+    target_compile_options(my_functions PRIVATE /Wall /WX )
+else()
+    target_compile_options(hello_world PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    target_compile_options(my_functions PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
 
 # Include directories for headers
 target_include_directories(my_functions PUBLIC include)
