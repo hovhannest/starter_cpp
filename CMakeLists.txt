@@ -20,6 +20,8 @@ option(ENABLE_TESTING "Enable testing" ON)
 set(GTEST_INSTALL_DIR "" CACHE PATH "Path to Google Test installation directory")
 
 if (ENABLE_TESTING)
+    enable_testing()
+
     CPMAddPackage(
         NAME googletest
         GITHUB_REPOSITORY google/googletest
