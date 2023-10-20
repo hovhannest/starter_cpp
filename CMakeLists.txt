@@ -13,6 +13,13 @@ if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 endif()
 
+# treat all warnings as errors
+if (MSVC)
+    add_compile_options(/Wall /WX)
+else()
+    add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+endif()
+
 # Option to enable testing
 option(ENABLE_TESTING "Enable testing" ON)
 
