@@ -6,6 +6,8 @@ project(HelloWorldApp)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+include(cmake/cpm.cmake)
+
 if (CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
@@ -18,28 +20,13 @@ option(ENABLE_TESTING "Enable testing" ON)
 set(GTEST_INSTALL_DIR "" CACHE PATH "Path to Google Test installation directory")
 
 if (ENABLE_TESTING)
-    # Include testing-related code
-    include(CTest)
-    enable_testing()
-
-    if (NOT GTEST_INSTALL_DIR)
-        # Set the installation path for Google Test relative to the root CMakeLists.txt
-        set(GTEST_INSTALL_DIR ${CMAKE_BINARY_DIR}/gtest)
-    endif()
-    
-    # Download and build Google Test as an external project
-    include(ExternalProject)
-    ExternalProject_Add(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest.git
-        GIT_TAG release-1.12.1 # Updated to a newer version of Google Test
-        CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${GTEST_INSTALL_DIR}
+    CPMAddPackage(
+        NAME googletest
+        GITHUB_REPOSITORY google/googletest
+        GIT_TAG release-1.12.1
+        VERSION 1.12.1
+        OPTIONS "INSTALL_GTEST OFF" "gtest_force_shared_crt"
     )
-
-    # Add the Google Test include and lib directories to your project
-    ExternalProject_Get_Property(googletest source_dir binary_dir)
-    include_directories(${GTEST_INSTALL_DIR}/include)
-    link_directories(${GTEST_INSTALL_DIR}/lib)
 
     add_subdirectory(test) # Include the test subdirectory
 endif()
