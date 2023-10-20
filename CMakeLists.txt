@@ -15,7 +15,7 @@ endif()
 
 # treat all warnings as errors
 if (MSVC)
-    add_compile_options(/Wall /WX /wd4668)
+    add_compile_options(/Wall /WX /wd4668 /wd4711 /wd4710)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 endif()
