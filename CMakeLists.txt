@@ -30,10 +30,6 @@ if (ENABLE_TESTING)
         OPTIONS "INSTALL_GTEST OFF" "gtest_force_shared_crt"
     )
 
-    if (MSVC)
-        add_compile_options( /wd5026 /wd5027 /wd5039 /wd4625 /wd4626 /wd4365 wd/4820 /wd4514)
-    endif()
-
     add_subdirectory(test) # Include the test subdirectory
 endif()
 
