@@ -38,7 +38,7 @@ if (ENABLE_TESTING)
     )
 
     if (MSVC)
-        target_compile_options(googletest PRIVATE /wd5026 /wd5027 /wd5039 /wd4625 /wd4626 /wd4365 wd/4820 /wd4514)
+        add_compile_options( /wd5026 /wd5027 /wd5039 /wd4625 /wd4626 /wd4365 wd/4820 /wd4514)
     endif()
 
     add_subdirectory(test) # Include the test subdirectory
