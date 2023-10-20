@@ -29,6 +29,9 @@ set(GTEST_INSTALL_DIR "" CACHE PATH "Path to Google Test installation directory"
 if (ENABLE_TESTING)
     enable_testing()
 
+    if (MSVC)
+        target_compile_options(test_hello_world PRIVATE /wd5026 /wd5027 /wd5039 /wd4625 /wd4626 /wd4365 wd/4820 /wd4514)
+    endif()
     CPMAddPackage(
         NAME googletest
         GITHUB_REPOSITORY google/googletest
