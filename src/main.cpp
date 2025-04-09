@@ -1,8 +1,10 @@
 #include <iostream>
-#include "foo.h"
 
 int main() {
-    std::cout << "Hello, World!" << std::endl;
-    std::cout << "foo() returns: " << foo() << std::endl;
+    std::cout << "Hello from hermetic build!\n";
+    std::cout << "Project version: "
+              << PROJECT_VERSION_MAJOR << "."
+              << PROJECT_VERSION_MINOR << "."
+              << PROJECT_VERSION_PATCH << "\n";
     return 0;
 }
