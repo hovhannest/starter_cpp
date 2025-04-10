@@ -1,3 +1,14 @@
+# Setup paths
+get_filename_component(SYSROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../sysroot" ABSOLUTE)
+get_filename_component(TOOLS_DIR "${SYSROOT_DIR}/tools" ABSOLUTE)
+
+# Configure Zig environment
+set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
+set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
+
+# Ensure cache directory exists
+file(MAKE_DIRECTORY "${SYSROOT_DIR}/.zigcache")
+
 # Load Zig fetcher
 include(${CMAKE_CURRENT_LIST_DIR}/../modules/FetchZig.cmake)
 fetch_zig()

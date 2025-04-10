@@ -37,9 +37,7 @@
       },
       "environment": {
         "TZ": "UTC",
-        "LC_ALL": "C",
-        "ZIG_GLOBAL_CACHE_DIR": "${sourceDir}/sysroot/tools/.zigcache",
-        "ZIG_LOCAL_CACHE_DIR": "${sourceDir}/sysroot/tools/.zigcache"
+        "LC_ALL": "C"
       }
     },
     {
@@ -55,9 +53,7 @@
       },
       "environment": {
         "TZ": "UTC",
-        "LC_ALL": "C",
-        "ZIG_GLOBAL_CACHE_DIR": "${sourceDir}/sysroot/tools/.zigcache",
-        "ZIG_LOCAL_CACHE_DIR": "${sourceDir}/sysroot/tools/.zigcache"
+        "LC_ALL": "C"
       }
     },
     {
