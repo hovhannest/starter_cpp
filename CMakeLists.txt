@@ -12,8 +12,19 @@ include(BuildHardening)
 # Define the project
 project(MyHermeticProject VERSION 1.0.0 LANGUAGES CXX C)
 
+# Override CMake's default flags
+set(CMAKE_CXX_FLAGS_INIT "")
+set(CMAKE_CXX_FLAGS "")
+set(CMAKE_CXX_FLAGS_RELEASE "")
+
 # Create executable target
 add_executable(myapp src/main.cpp)
+
+# Ensure CMake doesn't add its default flags
+set_target_properties(myapp PROPERTIES
+  LINK_FLAGS ""
+  LINK_FLAGS_RELEASE ""
+)
 
 # Apply hardening
 force_source_file_ordering(myapp)

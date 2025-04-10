@@ -36,6 +36,10 @@ set(CMAKE_SYSTEM_NAME Darwin)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
 set(ZIG_TARGET_TRIPLE "x86_64-macos-none")
 
+# Prevent using system SDK
+set(CMAKE_OSX_SYSROOT "")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "")
+
 # Set paths based on host system
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
     set(ZIG_EXE "zig.exe")
@@ -44,42 +48,28 @@ else()
 endif()
 
 # Configure build environment
-if(CROSS_COMPILING)
-    set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
-    set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
-    set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
-    set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
-endif()
+set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
+set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
 
 # Force compiler ID and skip detection
 set(CMAKE_C_COMPILER_ID "Clang")
-set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_C_COMPILER_FRONTEND_VARIANT "GNU")
 set(CMAKE_CXX_COMPILER_ID "Clang")
+set(CMAKE_CXX_COMPILER_FRONTEND_VARIANT "GNU")
+set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 # Set compiler and args
 set(CMAKE_C_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
 set(CMAKE_CXX_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
-set(CMAKE_C_COMPILER_ARG1 "cc -target ${ZIG_TARGET_TRIPLE}")
-set(CMAKE_CXX_COMPILER_ARG1 "c++ -target ${ZIG_TARGET_TRIPLE} -stdlib=libc++")
+set(CMAKE_C_COMPILER_ARG1 "cc")
+set(CMAKE_CXX_COMPILER_ARG1 "c++")
 
 # Configure flags for reproducible builds with macOS-specific options
-set(COMMON_FLAGS
-    "-target ${ZIG_TARGET_TRIPLE} \
-     -fno-rtti \
-     -ffunction-sections \
-     -fdata-sections \
-     -fstack-protector-strong \
-     -fcf-protection=full \
-     -no-canonical-prefixes \
-     -fno-use-cxa-atexit \
-     -Wno-builtin-macro-redefined \
-     -D__DATE__=\"redacted\" \
-     -D__TIME__=\"redacted\" \
-     -D__TIMESTAMP__=\"redacted\" \
-     -D__FILE__=redacted \
-     -stdlib=libc++")
+set(COMMON_FLAGS "-target ${ZIG_TARGET_TRIPLE}")
 
 # Configure path mapping for reproducible builds
 if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
@@ -103,11 +93,7 @@ set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
 
 # Configure linker flags for reproducible builds
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${ZIG_TARGET_TRIPLE} \
-    -static -s -fPIC \
-    -Wl,-dead_strip \
-    -Wl,-no_uuid \
-    -Wl,-Z")
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${ZIG_TARGET_TRIPLE}")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
 # Disable rpath handling
