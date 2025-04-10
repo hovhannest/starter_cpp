@@ -1,5 +1,5 @@
 # Configure Zig version and downloads
-set(ZIG_VERSION "0.14.0")
+set(ZIG_VERSION "0.14.0" CACHE STRING "Zig version to use")
 set(ZIG_DOWNLOAD_BASE "https://ziglang.org/download")
 
 # Platform-specific configuration
@@ -14,7 +14,23 @@ elseif(APPLE)
 else()
     set(ZIG_PLATFORM "linux")
     set(ZIG_ARCHIVE_EXT "tar.xz")
-    set(ZIG_HASH "c6052542376f606de613d63da465be731c2e8b437916ac71680062a407a41c2d")
+    set(ZIG_HASH "473ec26806133cf4d1918caf1a410f8403a13d979726a9045b421b685031a982")
+    
+    # Check Linux kernel version
+    execute_process(
+        COMMAND uname -r
+        OUTPUT_VARIABLE KERNEL_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    
+    # Extract major version number
+    string(REGEX MATCH "^([0-9]+)" _ "${KERNEL_VERSION}")
+    set(KERNEL_MAJOR_VERSION "${CMAKE_MATCH_1}")
+    
+    if(KERNEL_MAJOR_VERSION LESS 4)
+        set(ZIG_VERSION "0.13.0")
+        set(ZIG_HASH "d45312e61ebcc48032b77bc4cf7fd6915c11fa16e4aad116b66c9468211230ea")
+    endif()
 endif()
 
 # Setup paths

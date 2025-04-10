@@ -14,7 +14,7 @@ elseif(APPLE)
 else()
     set(NINJA_PLATFORM "linux")
     set(NINJA_ARCHIVE_EXT "zip")
-    set(NINJA_HASH "b901ba96e486dce377f9a070ed4ef3f79deb45f4ffe44edcc180f8a3f5dc9974")
+    set(NINJA_HASH "6f98805688d19672bd699fbbfa2c2cf0fc054ac3df1f0e6a47664d963d530255")
 endif()
 
 # Setup paths

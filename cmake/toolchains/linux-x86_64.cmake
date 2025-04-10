@@ -1,3 +1,9 @@
+# Setup paths
+get_filename_component(TOOLS_DIR "${CMAKE_CURRENT_LIST_DIR}/../../sysroot/tools" ABSOLUTE)
+
+# Set Zig library directory
+set(ENV{ZIG_LIB_DIR} "${TOOLS_DIR}/zig/lib")
+
 # Load Zig fetcher
 include(${CMAKE_CURRENT_LIST_DIR}/../modules/FetchZig.cmake)
 fetch_zig()
@@ -8,24 +14,24 @@ if(CMAKE_GENERATOR STREQUAL "Ninja")
     fetch_ninja()
 endif()
 
-# Define the system name and processor for cross-compilation
+# Define the system for cross-compilation
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
 
-# Set Zig as the compiler
+# Set target triple based on Zig's default for this platform
+set(ZIG_TARGET_TRIPLE "x86_64-linux-musl")
+
+# Configure Zig as the compiler
 set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
 set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
+# Set compiler arguments and target
+set(CMAKE_C_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
+set(CMAKE_CXX_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
 set(CMAKE_C_COMPILER_ARG1 "cc")
 set(CMAKE_CXX_COMPILER_ARG1 "c++")
 
-# Set target triple for Linux x86_64
-set(ZIG_TARGET_TRIPLE "x86_64-linux-gnu")
-set(CMAKE_C_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
-set(CMAKE_CXX_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
-
-# Configure compiler and linker flags for reproducible builds
-set(COMMON_FLAGS "-target ${ZIG_TARGET_TRIPLE} \
-    -fmacro-prefix-map=${CMAKE_SOURCE_DIR}=.")
+# Configure flags for reproducible builds
+set(COMMON_FLAGS "-fno-PIC -target ${ZIG_TARGET_TRIPLE}")
 
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
