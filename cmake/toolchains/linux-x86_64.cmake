@@ -23,16 +23,50 @@ if(CMAKE_GENERATOR STREQUAL "Ninja")
     fetch_ninja()
 endif()
 
+# Detect if we're cross-compiling
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
+    set(CROSS_COMPILING FALSE)
+else()
+    set(CROSS_COMPILING TRUE)
+    set(CMAKE_CROSSCOMPILING TRUE)
+endif()
+
 # Define the system for cross-compilation
 set(CMAKE_SYSTEM_NAME Linux)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
-
-# Set target triple based on Zig's default for this platform
 set(ZIG_TARGET_TRIPLE "x86_64-linux-musl")
 
-# Configure Zig as the compiler
-set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
-set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
+# Set paths based on host system
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(ZIG_EXE "zig.exe")
+else()
+    set(ZIG_EXE "zig")
+endif()
+
+# Configure build environment
+if(CROSS_COMPILING)
+    set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+    set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+    set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
+    set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
+endif()
+
+# Force compiler ID and skip detection
+set(CMAKE_C_COMPILER_ID "Clang")
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_COMPILER_ID "Clang")
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
+
+# Set compiler
+if(NOT CROSS_COMPILING)
+    set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
+    set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
+else()
+    set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+    set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+endif()
+
 # Set compiler arguments
 set(CMAKE_C_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
 set(CMAKE_CXX_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
@@ -59,6 +93,17 @@ set(COMMON_FLAGS
      -D__TIME__=\"redacted\" \
      -D__TIMESTAMP__=\"redacted\" \
      -D__FILE__=redacted")
+
+# Configure path mapping for reproducible builds
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+   # Convert Windows paths to Unix style for cross-compilation
+   file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMALIZED)
+   string(REPLACE ":" "" CMAKE_SOURCE_DIR_NORMALIZED "${CMAKE_SOURCE_DIR_NORMALIZED}")
+   string(APPEND COMMON_FLAGS " -ffile-prefix-map=//${CMAKE_SOURCE_DIR_NORMALIZED}=.")
+else()
+   file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMALIZED)
+   string(APPEND COMMON_FLAGS " -ffile-prefix-map=${CMAKE_SOURCE_DIR_NORMALIZED}=.")
+endif()
 
 # Add build type specific flags
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
