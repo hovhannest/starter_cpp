@@ -47,9 +47,17 @@ cd ..
 # Compare the two builds
 if cmp -s myapp-1 myapp-2; then
   echo "✅ Builds are identical"
-  sha256sum myapp-1
+  CHECKSUM=$(sha256sum myapp-1)
+  echo "${CHECKSUM}"
+  
+  # Clean up artifacts since builds match
+  rm -rf build-1 build-2 myapp-1 myapp-2
+  echo "Cleaned up build artifacts"
 else
   echo "❌ Builds differ"
-  sha256sum myapp-1 myapp-2
+  echo "First build:"
+  sha256sum myapp-1
+  echo "Second build:"
+  sha256sum myapp-2
   exit 1
 fi

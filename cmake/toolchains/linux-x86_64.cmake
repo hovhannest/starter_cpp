@@ -2,7 +2,10 @@
 get_filename_component(SYSROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../sysroot" ABSOLUTE)
 get_filename_component(TOOLS_DIR "${SYSROOT_DIR}/tools" ABSOLUTE)
 
-# Configure Zig environment
+# Configure Zig environment with reproducible build settings
+set(ENV{SOURCE_DATE_EPOCH} "0")
+set(ENV{TZ} "UTC")
+set(ENV{LC_ALL} "C")
 set(ENV{ZIG_LIB_DIR} "${TOOLS_DIR}/zig/lib")
 set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
 set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
@@ -30,33 +33,68 @@ set(ZIG_TARGET_TRIPLE "x86_64-linux-musl")
 # Configure Zig as the compiler
 set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
 set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
-# Set compiler arguments and target
+# Set compiler arguments
 set(CMAKE_C_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
 set(CMAKE_CXX_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
-set(CMAKE_C_COMPILER_ARG1 "cc")
-set(CMAKE_CXX_COMPILER_ARG1 "c++")
+set(CMAKE_C_COMPILER_ARG1 "cc --target=${ZIG_TARGET_TRIPLE}")
+set(CMAKE_CXX_COMPILER_ARG1 "c++ --target=${ZIG_TARGET_TRIPLE}")
 
 # Configure flags for reproducible builds
-set(COMMON_FLAGS "-fno-PIC -target ${ZIG_TARGET_TRIPLE}")
+set(COMMON_FLAGS
+    "-target ${ZIG_TARGET_TRIPLE} \
+     -fno-PIC \
+     -fno-rtti \
+     -fno-common \
+     -ffunction-sections \
+     -fdata-sections \
+     -fno-plt \
+     -fsanitize=cfi \
+     -fstack-protector-strong \
+     -fcf-protection=full \
+     -no-canonical-prefixes \
+     -fno-use-cxa-atexit \
+     -fno-addrsig \
+     -Wno-builtin-macro-redefined \
+     -D__DATE__=\"redacted\" \
+     -D__TIME__=\"redacted\" \
+     -D__TIMESTAMP__=\"redacted\" \
+     -D__FILE__=redacted")
+
+# Add build type specific flags
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND COMMON_FLAGS " -g")
+else()
+    string(APPEND COMMON_FLAGS " -O3")
+endif()
 
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
 
-# Force static linking and position independence
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static -fPIC")
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+# Configure linker flags for reproducible builds
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${ZIG_TARGET_TRIPLE} \
+    -static -s -fPIC \
+    -Wl,--build-id=none \
+    -Wl,-z,relro,-z,now")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
 # Disable rpath handling
 set(CMAKE_SKIP_RPATH TRUE)
 
-# Use hermetic timestamp and build ID generation
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--build-id=none")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
+# Configure path mapping for reproducible builds
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMALIZED)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR_NORMALIZED}=.")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR_NORMALIZED}=.")
 
-# Set build flags for optimized release builds
-set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+# Set build flags for debug and release builds
+set(CMAKE_C_FLAGS_DEBUG_INIT "-g")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g")
+set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
+
+# Force C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Configure the find root paths
 set(CMAKE_FIND_ROOT_PATH ${ZIG_ROOT})
