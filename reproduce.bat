@@ -20,7 +20,6 @@ if errorlevel 1 (
     exit /b 1
 )
 
-
 :: Add Zig and Ninja to PATH
 set "PATH=%CD%\sysroot\tools\zig;%CD%\sysroot\tools\ninja;%PATH%"
 
@@ -33,78 +32,85 @@ if errorlevel 1 (
 
 :: Clean previous builds
 echo Cleaning previous builds...
-if exist build-1 rmdir /s /q build-1
-if exist build-2 rmdir /s /q build-2
+if exist build rmdir /s /q build
 if exist binary_diff.txt del binary_diff.txt
 
-:: First build
-echo Building first copy...
-mkdir build-1
-pushd build-1
-cmake.exe -G Ninja ^
-    -DCMAKE_TOOLCHAIN_FILE=..\cmake\toolchains\windows-x86_64.cmake ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_VERBOSE_MAKEFILE=ON ^
-    -DCMAKE_C_COMPILER_WORKS=ON ^
-    -DCMAKE_CXX_COMPILER_WORKS=ON ^
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ^
-    -DCMAKE_COLOR_DIAGNOSTICS=OFF ^
-    .. || goto error
-cmake.exe --build . || goto error
-:: No longer copying to root folder
-popd
+:: Build and verify Windows native builds
+call :build_and_verify windows-x86_64 "Windows native" myapp.exe || exit /b 1
 
-:: Second build
-echo Building second copy...
-mkdir build-2
-pushd build-2
-cmake.exe -G Ninja ^
-    -DCMAKE_TOOLCHAIN_FILE=..\cmake\toolchains\windows-x86_64.cmake ^
-    -DCMAKE_BUILD_TYPE=Release ^
-    -DCMAKE_VERBOSE_MAKEFILE=ON ^
-    -DCMAKE_C_COMPILER_WORKS=ON ^
-    -DCMAKE_CXX_COMPILER_WORKS=ON ^
-    -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ^
-    -DCMAKE_COLOR_DIAGNOSTICS=OFF ^
-    .. || goto error
-cmake.exe --build . || goto error
-:: No longer copying to root folder
-popd
-
-:: Compare builds
-echo Comparing builds...
-fc /b build-1\myapp.exe build-2\myapp.exe >nul
-if errorlevel 1 (
-    echo.
-    echo ❌ Builds differ, generating detailed comparison...
-    echo.
-    
-    :: Run PowerShell comparison script
-    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 build-1/myapp.exe build-2/myapp.exe
-    
-    echo.
-    echo Build 1 hash:
-    certutil -hashfile build-1\myapp.exe SHA256 | findstr /v "CertUtil"
-    echo.
-    echo Build 2 hash:
-    certutil -hashfile build-2\myapp.exe SHA256 | findstr /v "CertUtil"
-    exit /b 1
-)
+:: Build and verify Linux cross-compilation builds
+call :build_and_verify linux-x86_64 "Linux cross-compilation" myapp || exit /b 1
 
 echo.
-echo ✅ Success! Builds match
-echo.
-echo Build hash:
-certutil -hashfile build-1\myapp.exe SHA256 | findstr /v "CertUtil"
-
-:: Clean up build directories on success
-if exist build-1 rmdir /s /q build-1
-if exist build-2 rmdir /s /q build-2
-
+echo ✅ All builds completed successfully!
 exit /b 0
 
-:error
+:: Build and verify subroutine
+:build_and_verify
+set "target=%~1"
+set "label=%~2"
+set "binary_name=%~3"
+
 echo.
-echo ❌ Build failed with error #%errorlevel%
-popd
-exit /b %errorlevel%
+echo === Testing %label% builds ===
+echo.
+
+:: Debug builds
+echo Building %label% debug #1...
+cmake --preset %target%-debug || exit /b 1
+cmake --build --preset %target%-debug || exit /b 1
+
+:: Store the first debug build
+copy /b "build\%target%-debug\%binary_name%" "build\%target%-debug\%binary_name%.1" >nul || exit /b 1
+
+echo Building %label% debug #2...
+cmake --build --preset %target%-debug || exit /b 1
+
+:: Compare debug builds
+echo Comparing %label% debug builds...
+fc /b "build\%target%-debug\%binary_name%.1" "build\%target%-debug\%binary_name%" >nul
+if errorlevel 1 (
+    echo.
+    echo ❌ %label% debug builds differ!
+    echo.
+    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-debug/%binary_name%.1" "build/%target%-debug/%binary_name%"
+    exit /b 1
+)
+echo ✅ %label% debug builds match
+
+:: Release builds
+echo Building %label% release #1...
+cmake --preset %target%-release || exit /b 1
+cmake --build --preset %target%-release || exit /b 1
+
+:: Store the first release build
+copy /b "build\%target%-release\%binary_name%" "build\%target%-release\%binary_name%.1" >nul || exit /b 1
+
+echo Building %label% release #2...
+cmake --build --preset %target%-release || exit /b 1
+
+:: Compare release builds
+echo Comparing %label% release builds...
+fc /b "build\%target%-release\%binary_name%.1" "build\%target%-release\%binary_name%" >nul
+if errorlevel 1 (
+    echo.
+    echo ❌ %label% release builds differ!
+    echo.
+    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-release/%binary_name%.1" "build/%target%-release/%binary_name%"
+    exit /b 1
+)
+echo ✅ %label% release builds match
+
+:: Print build hashes
+echo.
+echo %label% debug build hash:
+certutil -hashfile "build\%target%-debug\%binary_name%" SHA256 | findstr /v "CertUtil"
+echo.
+echo %label% release build hash:
+certutil -hashfile "build\%target%-release\%binary_name%" SHA256 | findstr /v "CertUtil"
+
+:: Clean up intermediate files
+del "build\%target%-debug\%binary_name%.1" >nul 2>nul
+del "build\%target%-release\%binary_name%.1" >nul 2>nul
+
+exit /b 0
