@@ -19,14 +19,28 @@ if(CMAKE_GENERATOR STREQUAL "Ninja")
     fetch_ninja()
 endif()
 
-# Define system
+# Define system for cross-compilation
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
-set(TARGET_TRIPLE "x86_64-windows")
+set(TARGET_TRIPLE "x86_64-windows-gnu")
 
-# Use Zig as both C and C++ compiler
-set(CMAKE_C_COMPILER "${ZIG_PATH}/zig.exe")
-set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig.exe")
+# Disable resource compiler requirement
+set(CMAKE_RC_COMPILER_WORKS 1)
+set(CMAKE_RC_COMPILER ${CMAKE_C_COMPILER})
+
+# Tell CMake not to add Unix-specific libraries
+set(CMAKE_C_STANDARD_LIBRARIES "")
+set(CMAKE_CXX_STANDARD_LIBRARIES "")
+set(CMAKE_CROSSCOMPILING TRUE)
+
+# Use Zig as both C and C++ compiler with proper Windows extension
+if(WIN32)
+    set(CMAKE_C_COMPILER "${ZIG_PATH}/zig.exe")
+    set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig.exe")
+else()
+    set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
+    set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
+endif()
 
 # Force compiler ID and skip detection
 set(CMAKE_C_COMPILER_ID "Clang")
@@ -35,9 +49,10 @@ set(CMAKE_CXX_COMPILER_ID "Clang")
 set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
-# Set basic compiler arguments
-set(CMAKE_C_COMPILER_ARG1 "cc -fdebug-compilation-dir=.")
-set(CMAKE_CXX_COMPILER_ARG1 "c++ -fdebug-compilation-dir=.")
+# Set basic compiler arguments with cross-platform path handling
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMALIZED)
+set(CMAKE_C_COMPILER_ARG1 "cc -target ${TARGET_TRIPLE}")
+set(CMAKE_CXX_COMPILER_ARG1 "c++ -target ${TARGET_TRIPLE}")
 
 # Common flags
 set(COMMON_FLAGS
@@ -46,10 +61,9 @@ set(COMMON_FLAGS
      -fno-rtti \
      -ffunction-sections \
      -fdata-sections \
-     -fno-unwind-tables \
-     -fno-asynchronous-unwind-tables \
-     -fmacro-prefix-map=${CMAKE_SOURCE_DIR}=. \
-     -fno-pdb-source-path-map")
+     -DWIN32 \
+     -D__MINGW32__ \
+     -D__MINGW64__")
 
 # Set initial flags
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
@@ -61,7 +75,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Link flags
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-static -s -Wl,--image-base=0x140000000")
+# Configure linker flags for Windows executables
+# Set PE timestamp to 0 for reproducible builds and avoid powershell dependency
+set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s --no-dynamic-linker -Wl,/timestamp:0")
+set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
 # Ensure release flags are properly passed
 set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
@@ -71,9 +88,8 @@ set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 
-# File path mapping for reproducible builds
+# File path mapping and Windows settings
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
-
-# Executables on Windows end in .exe
+set(CMAKE_LINK_DEF_FILE_FLAG "")  # Disable .def file generation
 set(CMAKE_EXECUTABLE_SUFFIX ".exe")

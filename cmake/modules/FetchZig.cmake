@@ -33,13 +33,23 @@ else()
     endif()
 endif()
 
-# Setup paths
+# Setup paths with cross-platform handling
 set(ZIG_ARCH "x86_64")
 set(ZIG_ARCHIVE "zig-${ZIG_PLATFORM}-${ZIG_ARCH}-${ZIG_VERSION}.${ZIG_ARCHIVE_EXT}")
 set(ZIG_URL "${ZIG_DOWNLOAD_BASE}/${ZIG_VERSION}/${ZIG_ARCHIVE}")
-set(ZIG_DIR "${CMAKE_CURRENT_LIST_DIR}/../../sysroot/tools")
+
+# Normalize paths for cross-platform compatibility
+file(TO_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}/../../sysroot/tools" ZIG_DIR)
 get_filename_component(ZIG_DIR ${ZIG_DIR} ABSOLUTE)
-set(ZIG_PATH "${ZIG_DIR}/zig")
+
+# Set platform-specific paths
+if(WIN32)
+    set(ZIG_PATH "${ZIG_DIR}/zig")
+    set(ZIG_EXE "${ZIG_PATH}/zig.exe")
+else()
+    set(ZIG_PATH "${ZIG_DIR}/zig")
+    set(ZIG_EXE "${ZIG_PATH}/zig")
+endif()
 set(ZIG_DOWNLOAD "${ZIG_DIR}/${ZIG_ARCHIVE}")
 
 # Function to install Zig
@@ -47,12 +57,7 @@ function(fetch_zig)
     # Ensure directory exists
     file(MAKE_DIRECTORY "${ZIG_DIR}")
 
-    # Check if Zig is already installed
-    if(WIN32)
-        set(ZIG_EXE "${ZIG_PATH}/zig.exe")
-    else()
-        set(ZIG_EXE "${ZIG_PATH}/zig")
-    endif()
+    # Check if Zig is already installed using platform-specific executable
 
     if(EXISTS "${ZIG_EXE}")
         execute_process(

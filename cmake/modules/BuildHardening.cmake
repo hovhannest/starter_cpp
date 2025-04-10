@@ -19,19 +19,10 @@ if(NOT COMMAND force_source_file_ordering)
   endfunction()
 endif()
 
-# Set timestamp in PE/COFF header for Windows executables
+# Timestamp is handled through linker flags for Windows cross-compilation
 if(NOT COMMAND remove_timestamp_from_binary)
   function(remove_timestamp_from_binary target)
-    if(WIN32)
-      add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND powershell -ExecutionPolicy Bypass -File
-                "${CMAKE_SOURCE_DIR}/scripts/set_pe_timestamp.ps1"
-                -FilePath "$<TARGET_FILE:${target}>"
-                -Timestamp 0
-        VERBATIM
-        COMMENT "Setting PE timestamp to 0 for ${target}"
-      )
-    endif()
+    # Nothing to do as timestamp is handled via linker flags
   endfunction()
 endif()
 
