@@ -17,7 +17,6 @@ add_executable(myapp src/main.cpp)
 
 # Apply hardening
 force_source_file_ordering(myapp)
-remove_timestamp_from_binary(myapp)
 
 # Configure version info
 target_compile_definitions(myapp PRIVATE

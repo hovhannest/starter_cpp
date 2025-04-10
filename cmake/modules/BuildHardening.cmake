@@ -19,14 +19,6 @@ if(NOT COMMAND force_source_file_ordering)
   endfunction()
 endif()
 
-# Timestamp is handled through linker flags for Windows cross-compilation
-if(NOT COMMAND remove_timestamp_from_binary)
-  function(remove_timestamp_from_binary target)
-    # Nothing to do as timestamp is handled via linker flags
-  endfunction()
-endif()
-
-
 
 # Ensure the module is only included once
 set(BUILD_HARDENING_INCLUDED TRUE)
