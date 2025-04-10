@@ -89,24 +89,8 @@
       }
     },
     {
-      "name": "windows-x86_64-cross",
-      "displayName": "Windows x86_64 Cross-Compile from Linux",
-      "inherits": "base",
-      "toolchainFile": "${sourceDir}/cmake/toolchains/windows-x86_64.cmake",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG",
-        "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
-        "CMAKE_EXE_LINKER_FLAGS": "-static -s"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
-      }
-    },
-    {
       "name": "windows-x86_64-debug",
-      "displayName": "Windows x86_64 Debug",
+      "displayName": "Windows x86_64 Debug (Native/Cross)",
       "inherits": "base",
       "toolchainFile": "${sourceDir}/cmake/toolchains/windows-x86_64.cmake",
       "cacheVariables": {
@@ -122,7 +106,7 @@
     },
     {
       "name": "windows-x86_64-release",
-      "displayName": "Windows x86_64 Release",
+      "displayName": "Windows x86_64 Release (Native/Cross)",
       "inherits": "base",
       "toolchainFile": "${sourceDir}/cmake/toolchains/windows-x86_64.cmake",
       "cacheVariables": {
@@ -138,11 +122,6 @@
     }
   ],
   "buildPresets": [
-    {
-      "name": "windows-x86_64-cross",
-      "configurePreset": "windows-x86_64-cross",
-      "jobs": 8
-    },
     {
       "name": "linux-x86_64-debug",
       "configurePreset": "linux-x86_64-debug",

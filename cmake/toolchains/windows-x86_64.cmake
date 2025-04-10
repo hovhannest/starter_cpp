@@ -19,27 +19,35 @@ if(CMAKE_GENERATOR STREQUAL "Ninja")
     fetch_ninja()
 endif()
 
-# Define system for cross-compilation
+# Detect if we're cross-compiling
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
+    set(CROSS_COMPILING FALSE)
+else()
+    set(CROSS_COMPILING TRUE)
+    set(CMAKE_CROSSCOMPILING TRUE)
+endif()
+
+# Define system
 set(CMAKE_SYSTEM_NAME Windows)
 set(CMAKE_SYSTEM_PROCESSOR x86_64)
 set(TARGET_TRIPLE "x86_64-windows-gnu")
 
-# Disable resource compiler requirement
-set(CMAKE_RC_COMPILER_WORKS 1)
-set(CMAKE_RC_COMPILER ${CMAKE_C_COMPILER})
+# Configure compiler settings based on compilation mode
+if(CROSS_COMPILING)
+    # Cross-compilation specific settings
+    set(CMAKE_RC_COMPILER_WORKS 1)
+    set(CMAKE_RC_COMPILER ${CMAKE_C_COMPILER})
+    set(CMAKE_C_STANDARD_LIBRARIES "")
+    set(CMAKE_CXX_STANDARD_LIBRARIES "")
+endif()
 
-# Tell CMake not to add Unix-specific libraries
-set(CMAKE_C_STANDARD_LIBRARIES "")
-set(CMAKE_CXX_STANDARD_LIBRARIES "")
-set(CMAKE_CROSSCOMPILING TRUE)
-
-# Use Zig as both C and C++ compiler with proper Windows extension
-if(WIN32)
-    set(CMAKE_C_COMPILER "${ZIG_PATH}/zig.exe")
-    set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig.exe")
-else()
+# Set up Zig as the compiler
+if(CROSS_COMPILING)
     set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
     set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
+else()
+    set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/zig.exe")
+    set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/zig.exe")
 endif()
 
 # Force compiler ID and skip detection
@@ -55,15 +63,26 @@ set(CMAKE_C_COMPILER_ARG1 "cc -target ${TARGET_TRIPLE}")
 set(CMAKE_CXX_COMPILER_ARG1 "c++ -target ${TARGET_TRIPLE}")
 
 # Common flags
-set(COMMON_FLAGS
-    "-target ${TARGET_TRIPLE} \
-     -O3 \
-     -fno-rtti \
-     -ffunction-sections \
-     -fdata-sections \
-     -DWIN32 \
-     -D__MINGW32__ \
-     -D__MINGW64__")
+# Configure platform-specific flags
+if(CROSS_COMPILING)
+    set(COMMON_FLAGS
+        "-target ${TARGET_TRIPLE} \
+         -O3 \
+         -fno-rtti \
+         -ffunction-sections \
+         -fdata-sections \
+         -DWIN32 \
+         -D__MINGW32__ \
+         -D__MINGW64__")
+else()
+    set(COMMON_FLAGS
+        "-target ${TARGET_TRIPLE} \
+         -O3 \
+         -fno-rtti \
+         -ffunction-sections \
+         -fdata-sections \
+         -DWIN32")
+endif()
 
 # Set initial flags
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
@@ -74,10 +93,12 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Link flags
-# Configure linker flags for Windows executables
-# Set PE timestamp to 0 for reproducible builds and avoid powershell dependency
-set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s --no-dynamic-linker -Wl,/timestamp:0")
+# Configure linker flags based on compilation mode
+if(CROSS_COMPILING)
+    set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s --no-dynamic-linker -Wl,/timestamp:0")
+else()
+    set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s")
+endif()
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
 # Ensure release flags are properly passed
