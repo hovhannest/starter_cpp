@@ -58,7 +58,7 @@
     },
     {
       "name": "macos-x86_64-debug",
-      "displayName": "macOS x86_64 Debug",
+      "displayName": "macOS x86_64 Debug (Native/Cross)",
       "inherits": "base",
       "toolchainFile": "${sourceDir}/cmake/toolchains/darwin-x86_64.cmake",
       "cacheVariables": {
@@ -74,14 +74,14 @@
     },
     {
       "name": "macos-x86_64-release",
-      "displayName": "macOS x86_64 Release",
+      "displayName": "macOS x86_64 Release (Native/Cross)",
       "inherits": "base",
       "toolchainFile": "${sourceDir}/cmake/toolchains/darwin-x86_64.cmake",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
-        "CMAKE_EXE_LINKER_FLAGS": "-static"
+        "CMAKE_EXE_LINKER_FLAGS": "-static -s"
       },
       "environment": {
         "TZ": "UTC",

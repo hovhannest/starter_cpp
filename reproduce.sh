@@ -87,10 +87,9 @@ build_and_verify() {
 echo "Cleaning previous builds..."
 rm -rf build
 
-# Build and verify native builds
-build_and_verify "linux-x86_64" "Linux native" "myapp"
-
-# Build and verify Windows cross-compilation builds
-build_and_verify "windows-x86_64" "Windows cross-compilation" "myapp.exe"
+# Build for all platforms
+build_and_verify "linux-x86_64" "Linux" "myapp"
+build_and_verify "windows-x86_64" "Windows" "myapp.exe"
+build_and_verify "macos-x86_64" "macOS" "myapp.out"
 
 echo -e "\n✅ All builds completed successfully!"

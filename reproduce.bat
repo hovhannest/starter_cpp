@@ -41,6 +41,9 @@ call :build_and_verify windows-x86_64 "Windows native" myapp.exe || exit /b 1
 :: Build and verify Linux cross-compilation builds
 call :build_and_verify linux-x86_64 "Linux cross-compilation" myapp || exit /b 1
 
+:: Build and verify macOS cross-compilation builds
+call :build_and_verify macos-x86_64 "macOS cross-compilation" myapp.out || exit /b 1
+
 echo.
 echo ✅ All builds completed successfully!
 exit /b 0
