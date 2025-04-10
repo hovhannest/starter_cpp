@@ -63,26 +63,30 @@ set(CMAKE_C_COMPILER_ARG1 "cc -target ${TARGET_TRIPLE}")
 set(CMAKE_CXX_COMPILER_ARG1 "c++ -target ${TARGET_TRIPLE}")
 
 # Common flags
-# Configure platform-specific flags
+# Set base flags common to all builds
+set(BASE_FLAGS
+    "-target ${TARGET_TRIPLE} \
+     -fno-rtti \
+     -ffunction-sections \
+     -fdata-sections \
+     -DWIN32")
+
+# Add cross-compilation specific defines
 if(CROSS_COMPILING)
-    set(COMMON_FLAGS
-        "-target ${TARGET_TRIPLE} \
-         -O3 \
-         -fno-rtti \
-         -ffunction-sections \
-         -fdata-sections \
-         -DWIN32 \
-         -D__MINGW32__ \
+    string(APPEND BASE_FLAGS
+        " -D__MINGW32__ \
          -D__MINGW64__")
-else()
-    set(COMMON_FLAGS
-        "-target ${TARGET_TRIPLE} \
-         -O3 \
-         -fno-rtti \
-         -ffunction-sections \
-         -fdata-sections \
-         -DWIN32")
 endif()
+
+# Add optimization and debug-specific flags
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    string(APPEND BASE_FLAGS " -Wno-dll-attribute-on-redeclaration")
+else()
+    string(APPEND BASE_FLAGS " -O3")
+endif()
+
+# Set common flags
+set(COMMON_FLAGS "${BASE_FLAGS}")
 
 # Set initial flags
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
@@ -101,11 +105,15 @@ else()
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
-# Ensure release flags are properly passed
+# Configure debug and release flags
+set(CMAKE_C_FLAGS_DEBUG_INIT "-g -Wno-dll-attribute-on-redeclaration")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g -Wno-dll-attribute-on-redeclaration")
 set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
 
-# Set build flags for optimized release builds
+# Set build flags for debug and release builds
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -Wno-dll-attribute-on-redeclaration")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Wno-dll-attribute-on-redeclaration")
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 
