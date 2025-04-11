@@ -1,10 +1,10 @@
-# nimiCPP
+# Starter C++
 
 A C++ project template demonstrating reproducible builds across different platforms.
 
 ## Overview
 
-nimiCPP is designed to create consistently reproducible builds by:
+This project is designed to create consistently reproducible builds by:
 - Using Zig as a hermetic C/C++ toolchain
 - Ensuring deterministic compilation settings
 - Removing timestamp and path information from binaries
@@ -13,54 +13,42 @@ nimiCPP is designed to create consistently reproducible builds by:
 ## Requirements
 
 - CMake 3.23 or later
-- [Ninja](https://ninja-build.org/) build system (required)
 
-The project uses:
-- Zig as its compiler toolchain (automatically downloaded)
-- Ninja as the build system (must be installed)
+The project automatically manages:
+- Zig compiler toolchain (automatically downloaded)
+- Ninja build system (automatically downloaded)
 
 ## Quick Start
 
-```bash
-# Configure project (automatically downloads Zig)
-cmake --preset windows-x86_64-release   # Windows
-cmake --preset linux-x86_64-release     # Linux
-cmake --preset macos-x86_64-release     # macOS
+Configure and build the project using CMake presets:
 
-# Build project (using ninja)
-cmake --build --preset windows-x86_64-release   # Windows
-cmake --build --preset linux-x86_64-release     # Linux
-cmake --build --preset macos-x86_64-release     # macOS
+```bash
+# Configure project
+cmake --preset <target-preset>
+
+# Build project
+cmake --build --preset <target-preset>
 ```
 
-Or manually:
+Available presets:
+- Windows x64: `windows-x86_64-debug`, `windows-x86_64-release`
+- Linux x64: `linux-x86_64-debug`, `linux-x86_64-release`
+- macOS Intel: `macos-x86_64-debug`, `macos-x86_64-release`
+- macOS Apple Silicon: `macos-arm64-debug`, `macos-arm64-release`
+
+Example:
 ```bash
-mkdir build
-cd build
-cmake ../ --preset windows-x86_64-release   # Configure
-ninja                                       # Build
-## Building
+# Configure for Windows release build
+cmake --preset windows-x86_64-release
 
-Build using CMake presets. The Zig compiler toolchain will be automatically installed if needed:
-
-2. Build using CMake presets:
-   ```bash
-   # Windows
-   cmake --preset windows-x86_64-release
-   cmake --build --preset windows-x86_64-release
-
-   # Linux
-   cmake --preset linux-x86_64-release
-   cmake --build --preset linux-x86_64-release
-
-   # macOS
-   cmake --preset macos-x86_64-release
-   cmake --build --preset macos-x86_64-release
-   ```
+# Build the project
+cmake --build --preset windows-x86_64-release
+```
 
 ## Verifying Reproducible Builds
 
 Run the reproduce script to verify build reproducibility:
+
 ```powershell
 # Windows
 .\reproduce.bat
@@ -71,42 +59,40 @@ Run the reproduce script to verify build reproducibility:
 ```
 
 This will:
-1. Perform two separate builds
-2. Compare the resulting binaries
-3. Show detailed differences if any are found
+1. Clean previous builds
+2. For each target platform (Windows, Linux, macOS Intel, macOS ARM):
+   - Build debug and release variants twice
+   - Compare the resulting binaries
+   - Show detailed differences if any are found
+   - Display SHA256 hashes of the builds
+3. Report overall success/failure
 
 ## Project Structure
 
 - `/src` - Source code
 - `/cmake`
-  - `/modules` - CMake modules for build configuration
+  - `/modules` - CMake modules
+    - `BuildHardening.cmake` - Build hardening settings
+    - `FetchNinja.cmake` - Ninja build system fetcher
+    - `FetchZig.cmake` - Zig compiler toolchain fetcher
   - `/toolchains` - Platform-specific toolchain files
+    - `windows-x86_64.cmake` - Windows x64 toolchain
+    - `linux-x86_64.cmake` - Linux x64 toolchain
+    - `darwin-x86_64.cmake` - macOS Intel toolchain
+    - `darwin-arm64.cmake` - macOS ARM (Apple Silicon) toolchain
 - `/scripts` - Build and utility scripts
+- `/sysroot` - Downloaded tools and cache (automatically created)
+  - `/tools` - Build tools (Zig, Ninja)
+  - `/.zigcache` - Zig compiler cache
 
-## Adding Dependencies
+## Cross-Compilation
 
-The project includes a hermetic dependency system. Add new dependencies using the `add_hermetic_dependency` function in CMake:
+The project supports cross-compilation to any supported target from any host platform using Zig's cross-compilation capabilities. For example:
+- Build Windows binaries from Linux
+- Build Linux binaries from Windows
+- Build macOS binaries from Windows/Linux
 
-```cmake
-add_hermetic_dependency(
-  NAME example_lib
-  GIT_REPOSITORY https://github.com/example/lib.git
-  GIT_TAG v1.0.0
-  EXPECTED_HASH <sha256-hash>  # Hash of the source at the specified tag
-)
-```
-
-This ensures dependencies are:
-- Fetched using a hermetic Git installation
-- Verified via hash checking
-- Built consistently across platforms
-- Isolated from system Git configuration
-
-The system automatically manages its own Git installation in `sysroot/tools/git` to ensure:
-- Consistent Git behavior across platforms
-- Isolation from system Git settings
-- Reproducible dependency fetching
-- Security through verified downloads
+The toolchain files handle all necessary compiler and linker settings to ensure reproducible builds regardless of the host platform.
 
 ## License
 
