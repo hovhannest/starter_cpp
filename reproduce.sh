@@ -90,6 +90,7 @@ rm -rf build
 # Build for all platforms
 build_and_verify "linux-x86_64" "Linux" "myapp"
 build_and_verify "windows-x86_64" "Windows" "myapp.exe"
-build_and_verify "macos-x86_64" "macOS" "myapp"
+build_and_verify "macos-x86_64" "macOS x86_64" "myapp"
+build_and_verify "macos-arm64" "macOS ARM64" "myapp"
 
 echo -e "\n✅ All builds completed successfully!"
