@@ -92,10 +92,6 @@ set(COMMON_FLAGS "${BASE_FLAGS}")
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
 
-# Force C++17 standard
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Configure linker flags based on compilation mode
 if(CROSS_COMPILING)

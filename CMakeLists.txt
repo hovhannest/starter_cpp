@@ -12,6 +12,11 @@ include(BuildHardening)
 # Define the project
 project(MyHermeticProject VERSION 1.0.0 LANGUAGES CXX C)
 
+# Force C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Override CMake's default flags
 set(CMAKE_CXX_FLAGS_INIT "")
 set(CMAKE_CXX_FLAGS "")
