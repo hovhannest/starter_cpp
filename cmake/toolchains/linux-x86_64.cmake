@@ -53,9 +53,7 @@ endif()
 
 # Force compiler ID and skip detection
 set(CMAKE_C_COMPILER_ID "Clang")
-set(CMAKE_C_COMPILER_FORCED TRUE)
 set(CMAKE_CXX_COMPILER_ID "Clang")
-set(CMAKE_CXX_COMPILER_FORCED TRUE)
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 # Set compiler
