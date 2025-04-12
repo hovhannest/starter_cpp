@@ -67,6 +67,15 @@ else()
     set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
 endif()
 
+# Configure archiver settings
+if(NOT CROSS_COMPILING)
+    set(CMAKE_AR "${ZIG_PATH}/zig" CACHE FILEPATH "Archiver")
+else()
+    set(CMAKE_AR "${TOOLS_DIR}/zig/${ZIG_EXE}" CACHE FILEPATH "Archiver")
+endif()
+set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
+set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
+
 # Set compiler arguments
 set(CMAKE_C_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})
 set(CMAKE_CXX_COMPILER_TARGET ${ZIG_TARGET_TRIPLE})

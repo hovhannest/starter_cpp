@@ -50,6 +50,12 @@ endif()
 # Configure build environment
 set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
 set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+
+# Configure archiver settings
+set(CMAKE_AR "${TOOLS_DIR}/zig/${ZIG_EXE}" CACHE FILEPATH "Archiver")
+set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
+set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
+
 set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
 set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
 

@@ -41,14 +41,28 @@ if(CROSS_COMPILING)
     set(CMAKE_CXX_STANDARD_LIBRARIES "")
 endif()
 
-# Set up Zig as the compiler
+# Configure Windows-specific settings
+set(CMAKE_STATIC_LIBRARY_PREFIX "")
+set(CMAKE_STATIC_LIBRARY_SUFFIX ".lib")
+set(CMAKE_LINK_LIBRARY_SUFFIX ".lib")
+set(CMAKE_EXECUTABLE_SUFFIX ".exe")
+set(CMAKE_LINK_DEF_FILE_FLAG "")  # Disable .def file generation
+
+# Set up Zig executable path
 if(CROSS_COMPILING)
+    set(ZIG_EXE "${ZIG_PATH}/zig")
     set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
     set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
 else()
+    set(ZIG_EXE "${TOOLS_DIR}/zig/zig.exe")
     set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/zig.exe")
     set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/zig.exe")
 endif()
+
+# Configure archiver settings
+set(CMAKE_AR "${ZIG_EXE}" CACHE FILEPATH "Archiver")
+set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
+set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
 
 # Force compiler ID and skip detection
 set(CMAKE_C_COMPILER_ID "Clang")
@@ -63,7 +77,6 @@ set(CMAKE_C_COMPILER_ARG1 "cc -target ${TARGET_TRIPLE}")
 set(CMAKE_CXX_COMPILER_ARG1 "c++ -target ${TARGET_TRIPLE}")
 
 # Common flags
-# Set base flags common to all builds
 set(BASE_FLAGS
     "-target ${TARGET_TRIPLE} \
      -fno-rtti \
@@ -92,7 +105,6 @@ set(COMMON_FLAGS "${BASE_FLAGS}")
 set(CMAKE_C_FLAGS_INIT "${COMMON_FLAGS}")
 set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
 
-
 # Configure linker flags based on compilation mode
 if(CROSS_COMPILING)
     set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s --no-dynamic-linker -Wl,/timestamp:0")
@@ -113,8 +125,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Wno-dll-attribute-on-redeclara
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
 
-# File path mapping and Windows settings
+# Configure file path mapping
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
-set(CMAKE_LINK_DEF_FILE_FLAG "")  # Disable .def file generation
-set(CMAKE_EXECUTABLE_SUFFIX ".exe")
