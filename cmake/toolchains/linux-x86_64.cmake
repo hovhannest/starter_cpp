@@ -126,7 +126,9 @@ set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
 set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${ZIG_TARGET_TRIPLE} \
     -static -s -fPIC \
     -Wl,--build-id=none \
-    -Wl,-z,relro,-z,now")
+    -Wl,-z,relro,-z,now \
+    -Wl,--gc-sections \
+    -Wl,--icf=all")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
 # Disable rpath handling
@@ -140,8 +142,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR_NOR
 # Set build flags for debug and release builds
 set(CMAKE_C_FLAGS_DEBUG_INIT "-g")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g")
-set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fmerge-all-constants -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fmerge-all-constants -fvisibility=hidden")
 
 
 # Configure the find root paths

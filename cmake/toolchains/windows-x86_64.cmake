@@ -107,21 +107,21 @@ set(CMAKE_CXX_FLAGS_INIT "${COMMON_FLAGS}")
 if(CROSS_COMPILING)
     set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s --no-dynamic-linker -Wl,/timestamp:0")
 else()
-    set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s")
+    set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${TARGET_TRIPLE} -static -s -Wl,--gc-sections -Wl,--icf=all")
 endif()
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
 
 # Configure debug and release flags
 set(CMAKE_C_FLAGS_DEBUG_INIT "-g -Wno-dll-attribute-on-redeclaration")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g -Wno-dll-attribute-on-redeclaration")
-set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fmerge-all-constants -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS_RELEASE_INIT "-O3 -DNDEBUG -fmerge-all-constants -fvisibility=hidden")
 
 # Set build flags for debug and release builds
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -g -Wno-dll-attribute-on-redeclaration")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -g -Wno-dll-attribute-on-redeclaration")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -O3 -DNDEBUG -fmerge-all-constants -fvisibility=hidden")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -fmerge-all-constants -fvisibility=hidden")
 
 # Configure file path mapping
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR}=.")
