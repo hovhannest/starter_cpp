@@ -2,13 +2,11 @@
 get_filename_component(SYSROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../sysroot" ABSOLUTE)
 get_filename_component(TOOLS_DIR "${SYSROOT_DIR}/tools" ABSOLUTE)
 
-# Configure Zig environment with reproducible build settings
+# Configure environment variables for reproducible builds
 set(ENV{SOURCE_DATE_EPOCH} "0")
 set(ENV{TZ} "UTC")
 set(ENV{LC_ALL} "C")
 set(ENV{ZIG_LIB_DIR} "${TOOLS_DIR}/zig/lib")
-set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
-set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
 
 # Ensure cache directory exists
 file(MAKE_DIRECTORY "${SYSROOT_DIR}/.zigcache")
@@ -43,34 +41,27 @@ else()
     set(ZIG_EXE "zig")
 endif()
 
-# Configure build environment
-if(CROSS_COMPILING)
-    set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
-    set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
-    set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
-    set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
-endif()
+# Set cache directories for Zig
+set(ENV{ZIG_LOCAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
+set(ENV{ZIG_GLOBAL_CACHE_DIR} "${SYSROOT_DIR}/.zigcache")
 
 # Force compiler ID and skip detection
 set(CMAKE_C_COMPILER_ID "Clang")
 set(CMAKE_CXX_COMPILER_ID "Clang")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
-# Set compiler
+# Set compiler paths
 if(NOT CROSS_COMPILING)
-    set(CMAKE_C_COMPILER "${ZIG_PATH}/zig")
-    set(CMAKE_CXX_COMPILER "${ZIG_PATH}/zig")
+    set(COMPILER_PATH "${ZIG_PATH}/zig")
 else()
-    set(CMAKE_C_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
-    set(CMAKE_CXX_COMPILER "${TOOLS_DIR}/zig/${ZIG_EXE}")
+    set(COMPILER_PATH "${TOOLS_DIR}/zig/${ZIG_EXE}")
 endif()
 
+set(CMAKE_C_COMPILER "${COMPILER_PATH}")
+set(CMAKE_CXX_COMPILER "${COMPILER_PATH}")
+
 # Configure archiver settings
-if(NOT CROSS_COMPILING)
-    set(CMAKE_AR "${ZIG_PATH}/zig" CACHE FILEPATH "Archiver")
-else()
-    set(CMAKE_AR "${TOOLS_DIR}/zig/${ZIG_EXE}" CACHE FILEPATH "Archiver")
-endif()
+set(CMAKE_AR "${COMPILER_PATH}" CACHE FILEPATH "Archiver")
 set(CMAKE_C_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
 set(CMAKE_CXX_CREATE_STATIC_LIBRARY "<CMAKE_AR> ar crs <TARGET> <OBJECTS>")
 
@@ -130,14 +121,9 @@ set(CMAKE_EXE_LINKER_FLAGS_INIT "-target ${ZIG_TARGET_TRIPLE} \
     -Wl,--gc-sections \
     -Wl,--icf=all")
 set(CMAKE_SHARED_LINKER_FLAGS_INIT "")
-
 # Disable rpath handling
 set(CMAKE_SKIP_RPATH TRUE)
 
-# Configure path mapping for reproducible builds
-file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" CMAKE_SOURCE_DIR_NORMALIZED)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR_NORMALIZED}=.")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ffile-prefix-map=${CMAKE_SOURCE_DIR_NORMALIZED}=.")
 
 # Set build flags for debug and release builds
 set(CMAKE_C_FLAGS_DEBUG_INIT "-g")
