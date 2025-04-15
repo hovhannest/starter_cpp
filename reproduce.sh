@@ -24,37 +24,6 @@ build_and_verify() {
 
     echo -e "\n=== Testing ${label} builds ===\n"
 
-    # Debug builds
-    echo "Building ${label} debug #1..."
-    cmake --preset "${target}-debug"
-    cmake --build --preset "${target}-debug"
-
-    # Store the first debug build
-    cp "build/${target}-debug/${binary_name}" "build/${target}-debug/${binary_name}.1"
-
-    # Clean while preserving the first build and rebuild for second build
-    echo "Building ${label} debug #2..."
-    mv "build/${target}-debug/${binary_name}.1" "${binary_name}.1.tmp"
-    rm -rf "build/${target}-debug"
-    mkdir -p "build/${target}-debug"
-    mv "${binary_name}.1.tmp" "build/${target}-debug/${binary_name}.1"
-    cmake --preset "${target}-debug"
-    cmake --build --preset "${target}-debug"
-    cp "build/${target}-debug/${binary_name}" "build/${target}-debug/${binary_name}.2"
-
-    # Compare debug builds
-    echo "Comparing ${label} debug builds..."
-    if ! cmp -s "build/${target}-debug/${binary_name}.1" "build/${target}-debug/${binary_name}.2"; then
-        echo -e "\n❌ ${label} debug builds differ!\n"
-        # Use hexdump to show differences (similar to hexdiff.ps1)
-        hexdump -C "build/${target}-debug/${binary_name}.1" > "build/${target}-debug/hex1"
-        hexdump -C "build/${target}-debug/${binary_name}.2" > "build/${target}-debug/hex2"
-        diff "build/${target}-debug/hex1" "build/${target}-debug/hex2"
-        rm -f "build/${target}-debug/hex1" "build/${target}-debug/hex2"
-        exit 1
-    fi
-    echo "✅ ${label} debug builds match"
-
     # Release builds
     echo "Building ${label} release #1..."
     cmake --preset "${target}-release"

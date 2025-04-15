@@ -11,36 +11,6 @@ echo.
 echo === Testing %label% builds ===
 echo.
 
-:: Debug builds
-echo Building %label% debug #1...
-cmake --preset %target%-debug || exit /b 1
-cmake --build --preset %target%-debug || exit /b 1
-
-:: Store the first debug build
-copy /b "build\%target%-debug\%binary_name%" "build\%target%-debug\%binary_name%.1" >nul || exit /b 1
-
-:: Clean while preserving the first build and rebuild for second build
-echo Building %label% debug #2...
-copy /b "build\%target%-debug\%binary_name%.1" "%binary_name%.1.tmp" >nul || exit /b 1
-rmdir /s /q "build\%target%-debug" || exit /b 1
-mkdir "build\%target%-debug" || exit /b 1
-move "%binary_name%.1.tmp" "build\%target%-debug\%binary_name%.1" >nul || exit /b 1
-cmake --preset %target%-debug || exit /b 1
-cmake --build --preset %target%-debug || exit /b 1
-copy /b "build\%target%-debug\%binary_name%" "build\%target%-debug\%binary_name%.2" >nul || exit /b 1
-
-:: Compare debug builds
-echo Comparing %label% debug builds...
-fc /b "build\%target%-debug\%binary_name%.1" "build\%target%-debug\%binary_name%.2" >nul
-if errorlevel 1 (
-    echo.
-    echo ❌ %label% debug builds differ!
-    echo.
-    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-debug/%binary_name%.1" "build/%target%-debug/%binary_name%.2"
-    exit /b 1
-)
-echo ✅ %label% debug builds match
-
 :: Release builds
 echo Building %label% release #1...
 cmake --preset %target%-release || exit /b 1

@@ -48,3 +48,20 @@ setup_shared_settings()
 
 # Setup find root paths
 setup_find_root_paths()
+
+# Add PE timestamp setting as post-build step
+function(set_pe_timestamp target)
+  if(CMAKE_HOST_WIN32)
+    set(TIMESTAMP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/set_pe_timestamp.ps1")
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND PowerShell -ExecutionPolicy Bypass -File "${TIMESTAMP_SCRIPT}" "$<TARGET_FILE:${target}>" 0
+      COMMENT "Setting PE timestamp for ${target}"
+    )
+  else()
+    set(TIMESTAMP_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/scripts/set_pe_timestamp.sh")
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${TIMESTAMP_SCRIPT} "$<TARGET_FILE:${target}>" 0
+      COMMENT "Setting PE timestamp for ${target}"
+    )
+  endif()
+endfunction()

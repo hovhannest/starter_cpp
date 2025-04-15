@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
 
-# Set SOURCE_DATE_EPOCH for reproducible builds
-if(NOT DEFINED ENV{SOURCE_DATE_EPOCH})
-    set(ENV{SOURCE_DATE_EPOCH} "0")
-endif()
-
 # Include modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 include(BuildHardening)
@@ -69,6 +64,11 @@ set_target_properties(myapp PROPERTIES
 
 # Apply hardening
 force_source_file_ordering(myapp)
+
+# Set PE timestamp for Windows builds
+if(WIN32 OR CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set_pe_timestamp(myapp)
+endif()
 
 # Configure version info
 target_compile_definitions(myapp PRIVATE
