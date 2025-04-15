@@ -19,17 +19,24 @@ cmake --build --preset %target%-debug || exit /b 1
 :: Store the first debug build
 copy /b "build\%target%-debug\%binary_name%" "build\%target%-debug\%binary_name%.1" >nul || exit /b 1
 
+:: Clean while preserving the first build and rebuild for second build
 echo Building %label% debug #2...
+copy /b "build\%target%-debug\%binary_name%.1" "%binary_name%.1.tmp" >nul || exit /b 1
+rmdir /s /q "build\%target%-debug" || exit /b 1
+mkdir "build\%target%-debug" || exit /b 1
+move "%binary_name%.1.tmp" "build\%target%-debug\%binary_name%.1" >nul || exit /b 1
+cmake --preset %target%-debug || exit /b 1
 cmake --build --preset %target%-debug || exit /b 1
+copy /b "build\%target%-debug\%binary_name%" "build\%target%-debug\%binary_name%.2" >nul || exit /b 1
 
 :: Compare debug builds
 echo Comparing %label% debug builds...
-fc /b "build\%target%-debug\%binary_name%.1" "build\%target%-debug\%binary_name%" >nul
+fc /b "build\%target%-debug\%binary_name%.1" "build\%target%-debug\%binary_name%.2" >nul
 if errorlevel 1 (
     echo.
     echo ❌ %label% debug builds differ!
     echo.
-    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-debug/%binary_name%.1" "build/%target%-debug/%binary_name%"
+    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-debug/%binary_name%.1" "build/%target%-debug/%binary_name%.2"
     exit /b 1
 )
 echo ✅ %label% debug builds match
@@ -42,17 +49,24 @@ cmake --build --preset %target%-release || exit /b 1
 :: Store the first release build
 copy /b "build\%target%-release\%binary_name%" "build\%target%-release\%binary_name%.1" >nul || exit /b 1
 
+:: Clean while preserving the first build and rebuild for second build
 echo Building %label% release #2...
+copy /b "build\%target%-release\%binary_name%.1" "%binary_name%.1.tmp" >nul || exit /b 1
+rmdir /s /q "build\%target%-release" || exit /b 1
+mkdir "build\%target%-release" || exit /b 1
+move "%binary_name%.1.tmp" "build\%target%-release\%binary_name%.1" >nul || exit /b 1
+cmake --preset %target%-release || exit /b 1
 cmake --build --preset %target%-release || exit /b 1
+copy /b "build\%target%-release\%binary_name%" "build\%target%-release\%binary_name%.2" >nul || exit /b 1
 
 :: Compare release builds
 echo Comparing %label% release builds...
-fc /b "build\%target%-release\%binary_name%.1" "build\%target%-release\%binary_name%" >nul
+fc /b "build\%target%-release\%binary_name%.1" "build\%target%-release\%binary_name%.2" >nul
 if errorlevel 1 (
     echo.
     echo ❌ %label% release builds differ!
     echo.
-    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-release/%binary_name%.1" "build/%target%-release/%binary_name%"
+    powershell -ExecutionPolicy Bypass -File scripts/hexdiff.ps1 "build/%target%-release/%binary_name%.1" "build/%target%-release/%binary_name%.2"
     exit /b 1
 )
 echo ✅ %label% release builds match
@@ -67,7 +81,9 @@ certutil -hashfile "build\%target%-release\%binary_name%" SHA256 | findstr /v "C
 
 :: Clean up intermediate files
 del "build\%target%-debug\%binary_name%.1" >nul 2>nul
+del "build\%target%-debug\%binary_name%.2" >nul 2>nul
 del "build\%target%-release\%binary_name%.1" >nul 2>nul
+del "build\%target%-release\%binary_name%.2" >nul 2>nul
 
 exit /b 0
 
