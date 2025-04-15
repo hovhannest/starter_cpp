@@ -34,10 +34,6 @@
         "CMAKE_CXX_FLAGS": "-g",
         "CMAKE_C_FLAGS": "-g",
         "CMAKE_EXE_LINKER_FLAGS": "-static"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -51,10 +47,6 @@
         "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_EXE_LINKER_FLAGS": "-static -s",
         "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -67,10 +59,6 @@
         "CMAKE_CXX_FLAGS": "-g",
         "CMAKE_C_FLAGS": "-g",
         "CMAKE_EXE_LINKER_FLAGS": "-static"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -83,10 +71,6 @@
         "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_EXE_LINKER_FLAGS": "-static -s"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -99,10 +83,6 @@
         "CMAKE_CXX_FLAGS": "-g",
         "CMAKE_C_FLAGS": "-g",
         "CMAKE_EXE_LINKER_FLAGS": "-static"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -115,10 +95,6 @@
         "CMAKE_CXX_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_EXE_LINKER_FLAGS": "-static -s"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -131,10 +107,6 @@
         "CMAKE_CXX_FLAGS": "-g",
         "CMAKE_C_FLAGS": "-g",
         "CMAKE_EXE_LINKER_FLAGS": "-static"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     },
     {
@@ -148,10 +120,6 @@
         "CMAKE_C_FLAGS": "-O3 -DNDEBUG",
         "CMAKE_EXE_LINKER_FLAGS": "-static -s",
         "CMAKE_INTERPROCEDURAL_OPTIMIZATION": "ON"
-      },
-      "environment": {
-        "TZ": "UTC",
-        "LC_ALL": "C"
       }
     }
   ],
