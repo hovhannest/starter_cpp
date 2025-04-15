@@ -43,15 +43,10 @@ echo ✅ %label% release builds match
 
 :: Print build hashes
 echo.
-echo %label% debug build hash:
-certutil -hashfile "build\%target%-debug\%binary_name%" SHA256 | findstr /v "CertUtil"
-echo.
 echo %label% release build hash:
 certutil -hashfile "build\%target%-release\%binary_name%" SHA256 | findstr /v "CertUtil"
 
 :: Clean up intermediate files
-del "build\%target%-debug\%binary_name%.1" >nul 2>nul
-del "build\%target%-debug\%binary_name%.2" >nul 2>nul
 del "build\%target%-release\%binary_name%.1" >nul 2>nul
 del "build\%target%-release\%binary_name%.2" >nul 2>nul
 

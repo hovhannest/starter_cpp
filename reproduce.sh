@@ -56,14 +56,10 @@ build_and_verify() {
     echo "✅ ${label} release builds match"
 
     # Print build hashes
-    echo -e "\n${label} debug build hash:"
-    sha256sum "build/${target}-debug/${binary_name}"
     echo -e "\n${label} release build hash:"
     sha256sum "build/${target}-release/${binary_name}"
 
     # Clean up intermediate files
-    rm -f "build/${target}-debug/${binary_name}.1"
-    rm -f "build/${target}-debug/${binary_name}.2"
     rm -f "build/${target}-release/${binary_name}.1"
     rm -f "build/${target}-release/${binary_name}.2"
 }

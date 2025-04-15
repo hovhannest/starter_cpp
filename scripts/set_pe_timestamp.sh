@@ -22,8 +22,19 @@ if [ "$MZ_SIG" != "4D5A" ]; then
     exit 1
 fi
 
+# Function to reverse lines (works on both macOS and Linux)
+reverse_lines() {
+    if command -v tac >/dev/null 2>&1; then
+        tac
+    elif command -v tail >/dev/null 2>&1; then
+        tail -r
+    else
+        awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--]}'
+    fi
+}
+
 # Read PE header offset from offset 0x3C (60 decimal)
-PE_OFFSET_HEX=$(hexdump -s 60 -n 4 -v -e '/1 "%02X"' "$PE_FILE" | fold -w2 | tac | tr -d '\n')
+PE_OFFSET_HEX=$(hexdump -s 60 -n 4 -v -e '/1 "%02X"' "$PE_FILE" | fold -w2 | reverse_lines | tr -d '\n')
 PE_OFFSET=$((16#$PE_OFFSET_HEX))
 
 # Read and verify PE signature ("PE\0\0" = "50 45 00 00")
@@ -37,7 +48,7 @@ fi
 TIMESTAMP_OFFSET=$((PE_OFFSET + 8))
 
 # Convert timestamp to little-endian hex
-TIMESTAMP_HEX=$(printf '%08x' "$TIMESTAMP" | fold -w2 | tac | tr -d '\n')
+TIMESTAMP_HEX=$(printf '%08x' "$TIMESTAMP" | fold -w2 | reverse_lines | tr -d '\n')
 
 # Write timestamp
 printf "\x${TIMESTAMP_HEX:0:2}\x${TIMESTAMP_HEX:2:2}\x${TIMESTAMP_HEX:4:2}\x${TIMESTAMP_HEX:6:2}" | \
