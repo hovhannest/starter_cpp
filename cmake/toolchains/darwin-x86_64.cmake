@@ -22,7 +22,7 @@ setup_compiler_paths()
 setup_compiler_args()
 
 # Set platform specific flags and apply common compiler flags
-set(PLATFORM_SPECIFIC_FLAGS "")
+set(PLATFORM_SPECIFIC_FLAGS "-D__APPLE__")
 set_common_compiler_flags()
 
 # Setup shared settings including linker flags

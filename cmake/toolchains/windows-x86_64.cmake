@@ -29,7 +29,7 @@ setup_compiler_paths()
 setup_compiler_args()
 
 # Configure Windows-specific flags
-set(PLATFORM_SPECIFIC_FLAGS "-DWIN32")
+set(PLATFORM_SPECIFIC_FLAGS "-DWIN32 -D_WIN32")
 if(CROSS_COMPILING)
     string(APPEND PLATFORM_SPECIFIC_FLAGS
         " -D__MINGW32__ \

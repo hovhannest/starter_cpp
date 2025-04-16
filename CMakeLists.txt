@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.23)
 # Include modules
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules")
 include(BuildHardening)
+include(BinaryOptimizations)
 include(FetchContent)
 
 # Enable testing
@@ -77,7 +78,12 @@ target_compile_definitions(myapp PRIVATE
   PROJECT_VERSION_PATCH=${PROJECT_VERSION_PATCH}
 )
 
-# Tests
+# Example of a minimal target without CRT
+add_executable(minimal_app src/minimal_main.cpp)
+target_minimal_binary(minimal_app)
+target_compile_definitions(minimal_app PRIVATE __linux__)
+
+# Regular targets remain unchanged (using CRT)
 add_executable(myapp_test tests/main_test.cpp)
 target_link_libraries(myapp_test PRIVATE gtest_main)
 add_test(NAME myapp_test COMMAND myapp_test)
