@@ -1,55 +1,30 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.15)
 
-project(HelloWorldApp)
+project(MSVCDemoProject LANGUAGES CXX)
 
-# Set the C++ standard to C++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Common target configurations
+function(configure_common_target target)
+    # Set C++ standard (can be overridden by calling code)
+    set_target_properties(${target} PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        LINK_SEARCH_START_STATIC ON
+        LINK_SEARCH_END_STATIC ON)
+endfunction()
 
-include(cmake/cpm.cmake)
+# Include MSVC toolchain configuration
+include(cmake/MSVCToolchain.cmake)
 
-if (CMAKE_SYSTEM_NAME MATCHES "Windows")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-endif()
+# Only add MSVC target if MSVC is available
+if(MSVC)
+    # Add executable target
+    add_executable(demo main.cpp)
 
-# Option to enable testing
-option(ENABLE_TESTING "Enable testing" ON)
+    # Apply common configurations
+    configure_common_target(demo)
 
-# Option to specify the GTest installation directory
-set(GTEST_INSTALL_DIR "" CACHE PATH "Path to Google Test installation directory")
-
-if (ENABLE_TESTING)
-    enable_testing()
-
-    CPMAddPackage(
-        NAME googletest
-        GITHUB_REPOSITORY google/googletest
-        GIT_TAG release-1.12.1
-        VERSION 1.12.1
-        OPTIONS "INSTALL_GTEST OFF" "gtest_force_shared_crt"
-    )
-
-    add_subdirectory(test) # Include the test subdirectory
-endif()
-
-# Add an executable for the main application
-add_executable(hello_world src/main.cpp)
-
-# Add a function library
-add_library(my_functions src/foo.cpp)
-
-# treat all warnings as errors
-if (MSVC)
-    target_compile_options(hello_world PRIVATE /Wall /WX /wd4668 /wd4711 /wd4710)
-    target_compile_options(my_functions PRIVATE /Wall /WX )
+    # Apply MSVC-specific configurations
+    configure_msvc_minimal(demo)
 else()
-    target_compile_options(hello_world PRIVATE -Wall -Wextra -Wpedantic -Werror)
-    target_compile_options(my_functions PRIVATE -Wall -Wextra -Wpedantic -Werror)
+    message(WARNING "MSVC compiler not found - skipping MSVC-specific targets")
 endif()
-
-# Include directories for headers
-target_include_directories(my_functions PUBLIC include)
-
-# Link the executable with the function library
-target_link_libraries(hello_world my_functions)
