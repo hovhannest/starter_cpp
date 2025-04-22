@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(minimal_runtime LANGUAGES C CXX)
+project(minimal_runtime LANGUAGES C)
 
 # Option to control VC-LTL usage
 option(USE_VC_LTL "Use VC-LTL to reduce binary size" ON)
@@ -45,7 +45,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Create executable
-add_executable(minimal_app src/main.cpp)
+add_executable(minimal_app src/main.c)
 
 # Link zenoh-pico library
 if(TARGET zenohpico::lib)
