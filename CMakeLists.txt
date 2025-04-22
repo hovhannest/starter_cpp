@@ -1,30 +1,51 @@
 cmake_minimum_required(VERSION 3.15)
+project(minimal_runtime LANGUAGES CXX)
 
-project(MSVCDemoProject LANGUAGES CXX)
+# Enable Link Time Optimization
+include(CheckIPOSupported)
+check_ipo_supported(RESULT LTO_SUPPORTED)
 
-# Common target configurations
-function(configure_common_target target)
-    # Set C++ standard (can be overridden by calling code)
-    set_target_properties(${target} PROPERTIES
-        CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED ON
-        LINK_SEARCH_START_STATIC ON
-        LINK_SEARCH_END_STATIC ON)
+# Global compiler settings
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Function to configure MSVC project settings
+function(configure_msvc_project TARGET_NAME)
+    if(MSVC)
+        # Set static runtime linking
+        set_property(TARGET ${TARGET_NAME} PROPERTY
+            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        
+        # Add MinSizeRel and RelWithDebInfo configurations
+        set(CMAKE_CONFIGURATION_TYPES "Debug;Release;MinSizeRel;RelWithDebInfo"
+            CACHE STRING "Available build configurations" FORCE)
+        
+        # MinSizeRel specific optimizations for MSVC
+        target_compile_options(${TARGET_NAME} PRIVATE
+            $<$<CONFIG:MinSizeRel>:/O1>     # Minimize size
+            $<$<CONFIG:MinSizeRel>:/Os>     # Favor size over speed
+            $<$<CONFIG:MinSizeRel>:/GF>     # String pooling
+            $<$<CONFIG:MinSizeRel>:/Gy>     # Function-level linking
+            $<$<CONFIG:MinSizeRel>:/Gw>     # Optimize global data
+            $<$<CONFIG:MinSizeRel>:/GR->    # Disable RTTI
+            $<$<CONFIG:MinSizeRel>:/EHs-c->) # Disable exceptions
+            
+        # MinSizeRel linker flags
+        target_link_options(${TARGET_NAME} PRIVATE
+            $<$<CONFIG:MinSizeRel>:/OPT:REF>    # Remove unused functions
+            $<$<CONFIG:MinSizeRel>:/OPT:ICF>    # Fold identical functions
+            $<$<CONFIG:MinSizeRel>:/INCREMENTAL:NO>)
+
+        # Enable LTO for MinSizeRel if supported
+        if(LTO_SUPPORTED)
+            set_property(TARGET ${TARGET_NAME} PROPERTY
+                INTERPROCEDURAL_OPTIMIZATION_MINSIZE_REL TRUE)
+        endif()
+    endif()
 endfunction()
 
-# Include MSVC toolchain configuration
-include(cmake/MSVCToolchain.cmake)
+# Create executable
+add_executable(minimal_app src/main.cpp)
 
-# Only add MSVC target if MSVC is available
-if(MSVC)
-    # Add executable target
-    add_executable(demo main.cpp)
-
-    # Apply common configurations
-    configure_common_target(demo)
-
-    # Apply MSVC-specific configurations
-    configure_msvc_minimal(demo)
-else()
-    message(WARNING "MSVC compiler not found - skipping MSVC-specific targets")
-endif()
+# Configure the project with optimization settings
+configure_msvc_project(minimal_app)
