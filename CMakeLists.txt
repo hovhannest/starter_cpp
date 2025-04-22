@@ -64,19 +64,23 @@ function(configure_msvc_project TARGET_NAME)
         
         # MinSizeRel specific optimizations for MSVC
         target_compile_options(${TARGET_NAME} PRIVATE
-            $<$<CONFIG:MinSizeRel>:/O1>     # Minimize size
-            $<$<CONFIG:MinSizeRel>:/Os>     # Favor size over speed
-            $<$<CONFIG:MinSizeRel>:/GF>     # String pooling
-            $<$<CONFIG:MinSizeRel>:/Gy>     # Function-level linking
-            $<$<CONFIG:MinSizeRel>:/Gw>     # Optimize global data
-            $<$<CONFIG:MinSizeRel>:/GR->    # Disable RTTI
+            $<$<CONFIG:MinSizeRel>:/O1>        # Minimize size
+            $<$<CONFIG:MinSizeRel>:/Os>        # Favor size over speed
+            $<$<CONFIG:MinSizeRel>:/GF>        # String pooling
+            $<$<CONFIG:MinSizeRel>:/Gy>        # Function-level linking
+            $<$<CONFIG:MinSizeRel>:/Gw>        # Optimize global data
+            $<$<CONFIG:MinSizeRel>:/GR->       # Disable RTTI
+            $<$<CONFIG:MinSizeRel>:/GL>        # Whole program optimization
+            $<$<CONFIG:MinSizeRel>:/Zc:inline> # Remove unreferenced COMDAT
         )
             
         # MinSizeRel linker flags
         target_link_options(${TARGET_NAME} PRIVATE
-            $<$<CONFIG:MinSizeRel>:/OPT:REF>    # Remove unused functions
-            $<$<CONFIG:MinSizeRel>:/OPT:ICF>    # Fold identical functions
-            $<$<CONFIG:MinSizeRel>:/INCREMENTAL:NO>)
+            $<$<CONFIG:MinSizeRel>:/OPT:REF>           # Remove unused functions
+            $<$<CONFIG:MinSizeRel>:/OPT:ICF>           # Fold identical functions
+            $<$<CONFIG:MinSizeRel>:/INCREMENTAL:NO>
+            $<$<CONFIG:MinSizeRel>:/LTCG>              # Link time code generation
+            ) # Use only VC-LTL's CRT
 
         # Enable LTO for MinSizeRel if supported
         if(LTO_SUPPORTED)
