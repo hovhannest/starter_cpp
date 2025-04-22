@@ -72,6 +72,21 @@ function(configure_msvc_project TARGET_NAME)
             $<$<CONFIG:MinSizeRel>:/GR->       # Disable RTTI
             $<$<CONFIG:MinSizeRel>:/GL>        # Whole program optimization
             $<$<CONFIG:MinSizeRel>:/Zc:inline> # Remove unreferenced COMDAT
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_INLINE>   # Use minimal printf
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_MATH_INLINE>    # Minimal math
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STRING_INLINE>  # Minimal string ops
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDLIB_INLINE>  # Minimal stdlib
+            $<$<CONFIG:MinSizeRel>:-D_CRTBLD>                # Only build essential CRT
+            $<$<CONFIG:MinSizeRel>:-D_UCRT_DISABLED_PRINT>   # Disable full printf support
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STREAMS>        # Disable stream support
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_ACCESS>   # Minimal stdio access
+            $<$<CONFIG:MinSizeRel>:-D_CRT_DISABLE_PERFCRIT_LOCKS> # Disable stdio locks
+            $<$<CONFIG:MinSizeRel>:-D_MINIMAL_CRT_INIT>   # Minimal CRT initialization
+            $<$<CONFIG:MinSizeRel>:-D_CRT_STARTUP_NO_HEAP>   # Disable heap initialization
+            $<$<CONFIG:MinSizeRel>:-D_CRT_VCCLRIT_NO_DEPRECATE> # Disable CRT security checks
+            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STARTUP_INIT>   # Skip full CRT initialization
+            $<$<CONFIG:MinSizeRel>:-D_NO_LIB_INIT>          # Skip library initialization
+            $<$<CONFIG:MinSizeRel>:-D_DISABLE_VECTOR_ANNOTATION> # Disable security annotations
         )
             
         # MinSizeRel linker flags
