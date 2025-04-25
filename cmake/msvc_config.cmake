@@ -62,6 +62,8 @@ function(configure_msvc_project TARGET_NAME)
             $<$<CONFIG:MinSizeRel>:/GR->       # Disable RTTI
             $<$<CONFIG:MinSizeRel>:/GL>        # Whole program optimization
             $<$<CONFIG:MinSizeRel>:/Zc:inline> # Remove unreferenced COMDAT
+            $<$<CONFIG:MinSizeRel>:/GS->       # Disable buffer security check
+            $<$<CONFIG:MinSizeRel>:/Gw>        # Whole program global data optimization
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_INLINE>   # Use minimal printf
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_MATH_INLINE>    # Minimal math
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STRING_INLINE>  # Minimal string ops
