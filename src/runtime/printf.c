@@ -14,25 +14,46 @@ int printf(const char* format, ...) {
     // Simple implementation that only handles %s and %d for now
     while (*format) {
         if (*format == '%') {
-            format++;
-            switch (*format) {
-                case 's': {
-                    const char* str = va_arg(args, const char*);
-                    WriteConsoleA(console, str, strlen(str), &chars_written, NULL);
+            format++; // Skip '%'
+            if (*format == '.') {
+                format++; // Skip '.'
+                if (*format == '*') {
+                    format++; // Skip '*'
+                    if (*format == 's') {
+                        int precision = va_arg(args, int);
+                        const char* str = va_arg(args, const char*);
+                        size_t len_str = strlen(str);
+                        size_t to_write = (precision < (int)len_str) ? precision : len_str;
+                        WriteConsoleA(console, str, to_write, &chars_written, NULL);
+                        written += chars_written;
+                    } else {
+                        WriteConsoleA(console, "%.*", 3, &chars_written, NULL);
+                        written += chars_written;
+                    }
+                } else {
+                    WriteConsoleA(console, "%.", 2, &chars_written, NULL);
                     written += chars_written;
-                    break;
                 }
-                case 'd': {
-                    int num = va_arg(args, int);
-                    int len = sprintf_s(buffer, sizeof(buffer), "%d", num);
-                    WriteConsoleA(console, buffer, len, &chars_written, NULL);
-                    written += chars_written;
-                    break;
+            } else {
+                switch (*format) {
+                    case 's': {
+                        const char* str = va_arg(args, const char*);
+                        WriteConsoleA(console, str, strlen(str), &chars_written, NULL);
+                        written += chars_written;
+                        break;
+                    }
+                    case 'd': {
+                        int num = va_arg(args, int);
+                        int len = sprintf_s(buffer, sizeof(buffer), "%d", num);
+                        WriteConsoleA(console, buffer, len, &chars_written, NULL);
+                        written += chars_written;
+                        break;
+                    }
+                    default:
+                        WriteConsoleA(console, format - 1, 1, &chars_written, NULL);
+                        written += chars_written;
+                        break;
                 }
-                default:
-                    WriteConsoleA(console, format - 1, 1, &chars_written, NULL);
-                    written += chars_written;
-                    break;
             }
         } else {
             WriteConsoleA(console, format, 1, &chars_written, NULL);
