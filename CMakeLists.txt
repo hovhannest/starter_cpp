@@ -59,6 +59,14 @@ CPMAddPackage(
     "Z_FEATURE_INTEREST:BOOL=OFF"
     "Z_FEATURE_LIVELINESS:BOOL=OFF"
     "Z_FEATURE_AUTO_RECONNECT:BOOL=OFF"
+    "Z_FEATURE_LINK_TCP:BOOL=OFF"
+    "Z_FEATURE_SCOUTING_UDP:BOOL=OFF"
+    "Z_FEATURE_SESSION_CHECK:BOOL=OFF"
+    "Z_FEATURE_TCP_NODELAY:BOOL=OFF"
+    "Z_FEATURE_UNICAST_PEER:BOOL=OFF"
+    "Z_FEATURE_LOCAL_SUBSCRIBER:BOOL=OFF"
+    "Z_FEATURE_MULTICAST_TRANSPORT:BOOL=OFF"
+    "Z_FEATURE_UNICAST_TRANSPORT:BOOL=OFF"
 )
 
 if(TARGET zenohpico)
@@ -82,12 +90,21 @@ if(MSVC)
         $<$<CONFIG:Release,MinSizeRel>:/O1>
         $<$<CONFIG:Release,MinSizeRel>:/Os>
         $<$<CONFIG:Release,MinSizeRel>:/GL>
+        $<$<CONFIG:Release,MinSizeRel>:/GS->
     )
     add_link_options(
         $<$<CONFIG:Release,MinSizeRel>:/LTCG>
         $<$<CONFIG:Release,MinSizeRel>:/OPT:REF>
         $<$<CONFIG:Release,MinSizeRel>:/OPT:ICF>
+        $<$<CONFIG:Release,MinSizeRel>:/MANIFEST:NO>
+        $<$<CONFIG:Release,MinSizeRel>:/LARGEADDRESSAWARE:NO>
     )
+
+    # Force IPO for all targets in MinSizeRel
+    if(LTO_SUPPORTED)
+        set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            PROPERTY INTERPROCEDURAL_OPTIMIZATION_MINSIZE_REL TRUE)
+    endif()
 endif()
 
 # Create runtime library

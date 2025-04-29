@@ -64,6 +64,9 @@ function(configure_msvc_project TARGET_NAME)
             $<$<CONFIG:MinSizeRel>:/Zc:inline> # Remove unreferenced COMDAT
             $<$<CONFIG:MinSizeRel>:/GS->       # Disable buffer security check
             $<$<CONFIG:MinSizeRel>:/Gw>        # Whole program global data optimization
+            $<$<CONFIG:MinSizeRel>:/Gm->       # Disable minimal rebuild
+            $<$<CONFIG:MinSizeRel>:/guard:cf-> # Disable Control Flow Guard
+            $<$<CONFIG:MinSizeRel>:/GA>        # Optimize for Windows Application
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_INLINE>   # Use minimal printf
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_MATH_INLINE>    # Minimal math
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STRING_INLINE>  # Minimal string ops
@@ -85,7 +88,7 @@ function(configure_msvc_project TARGET_NAME)
         target_link_options(${TARGET_NAME} PRIVATE
             $<$<CONFIG:MinSizeRel>:/OPT:REF>           # Remove unused functions
             $<$<CONFIG:MinSizeRel>:/OPT:ICF>           # Fold identical functions
-            $<$<CONFIG:MinSizeRel>:/INCREMENTAL:NO>
+            $<$<CONFIG:MinSizeRel>:/INCREMENTAL:NO>    # Disable incremental linking
             $<$<CONFIG:MinSizeRel>:/LTCG>              # Link time code generation
             ) # Use only VC-LTL's CRT
 
