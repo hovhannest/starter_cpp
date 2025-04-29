@@ -105,3 +105,51 @@ static int sprintf_s(char* buffer, size_t size, const char* format, int value) {
     
     return written;
 }
+
+// Custom snprintf implementation that only handles %s and %d
+int snprintf(char* buffer, size_t size, const char* format, ...) {
+    if (!buffer || size == 0) return 0;
+    
+    va_list args;
+    va_start(args, format);
+    int written = 0;
+    
+    while (*format && written < size - 1) {
+        if (*format == '%') {
+            format++;
+            switch (*format) {
+                case 's': {
+                    const char* str = va_arg(args, const char*);
+                    while (*str && written < size - 1) {
+                        buffer[written++] = *str++;
+                    }
+                    break;
+                }
+                case 'd': {
+                    int num = va_arg(args, int);
+                    char temp[12];
+                    int len = sprintf_s(temp, sizeof(temp), "%d", num);
+                    for (int i = 0; i < len && written < size - 1; i++) {
+                        buffer[written++] = temp[i];
+                    }
+                    break;
+                }
+                default:
+                    if (written < size - 1) {
+                        buffer[written++] = *(format - 1);
+                        if (written < size - 1) {
+                            buffer[written++] = *format;
+                        }
+                    }
+                    break;
+            }
+        } else {
+            buffer[written++] = *format;
+        }
+        format++;
+    }
+    
+    buffer[written] = '\0';
+    va_end(args);
+    return written;
+}
