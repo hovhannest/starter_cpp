@@ -117,9 +117,25 @@ int snprintf(char* buffer, size_t size, const char* format, ...) {
     while (*format && written < size - 1) {
         if (*format == '%') {
             format++;
+            
+            // Handle width specification
+            int width = 0;
+            while (*format >= '0' && *format <= '9') {
+                width = width * 10 + (*format - '0');
+                format++;
+            }
+            
             switch (*format) {
                 case 's': {
                     const char* str = va_arg(args, const char*);
+                    size_t len = strlen(str);
+                    
+                    // Add padding if width specified
+                    while (width > len && written < size - 1) {
+                        buffer[written++] = ' ';
+                        width--;
+                    }
+                    
                     while (*str && written < size - 1) {
                         buffer[written++] = *str++;
                     }
@@ -129,6 +145,13 @@ int snprintf(char* buffer, size_t size, const char* format, ...) {
                     int num = va_arg(args, int);
                     char temp[12];
                     int len = sprintf_s(temp, sizeof(temp), "%d", num);
+                    
+                    // Add padding if width specified
+                    while (width > len && written < size - 1) {
+                        buffer[written++] = ' ';
+                        width--;
+                    }
+                    
                     for (int i = 0; i < len && written < size - 1; i++) {
                         buffer[written++] = temp[i];
                     }
@@ -152,4 +175,121 @@ int snprintf(char* buffer, size_t size, const char* format, ...) {
     buffer[written] = '\0';
     va_end(args);
     return written;
+}
+
+// Helper function to skip whitespace
+static const char* skip_whitespace(const char* str) {
+    while (*str == ' ' || *str == '\t' || *str == '\n' || *str == '\r') {
+        str++;
+    }
+    return str;
+}
+
+// Helper function to parse integer
+static int parse_int(const char** str, int* value) {
+    *value = 0;
+    int sign = 1;
+    const char* s = *str;
+
+    // Handle sign
+    if (*s == '-') {
+        sign = -1;
+        s++;
+    } else if (*s == '+') {
+        s++;
+    }
+
+    // Parse digits
+    if (!(*s >= '0' && *s <= '9')) {
+        return 0;  // No valid number found
+    }
+
+    while (*s >= '0' && *s <= '9') {
+        *value = (*value * 10) + (*s - '0');
+        s++;
+    }
+
+    *value *= sign;
+    *str = s;
+    return 1;  // Successfully parsed
+}
+
+// Basic sscanf implementation
+int sscanf(const char* str, const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    int matched = 0;
+
+    while (*format && *str) {
+        if (*format == '%') {
+            format++;  // Skip '%'
+            
+            // Handle assignment suppression with *
+            int suppress = 0;
+            if (*format == '*') {
+                suppress = 1;
+                format++;
+            }
+
+            // Skip any width specification
+            while (*format >= '0' && *format <= '9') {
+                format++;
+            }
+
+            switch (*format) {
+                case 'd': {
+                    int value;
+                    str = skip_whitespace(str);
+                    if (parse_int(&str, &value)) {
+                        if (!suppress) {
+                            int* value_ptr = va_arg(args, int*);
+                            *value_ptr = value;
+                            matched++;
+                        }
+                    } else {
+                        va_end(args);
+                        return matched;
+                    }
+                    break;
+                }
+                case 's': {
+                    str = skip_whitespace(str);
+                    if (!suppress) {
+                        char* buffer = va_arg(args, char*);
+                        // Copy until whitespace or end
+                        while (*str && *str != ' ' && *str != '\t' && *str != '\n' && *str != '\r') {
+                            *buffer++ = *str++;
+                        }
+                        *buffer = '\0';
+                        matched++;
+                    } else {
+                        // Skip the string without storing
+                        while (*str && *str != ' ' && *str != '\t' && *str != '\n' && *str != '\r') {
+                            str++;
+                        }
+                    }
+                    break;
+                }
+                default:
+                    // Unsupported format specifier
+                    va_end(args);
+                    return matched;
+            }
+        } else if (*format == ' ' || *format == '\t' || *format == '\n' || *format == '\r') {
+            // Skip whitespace in both format and input
+            format = skip_whitespace(format);
+            str = skip_whitespace(str);
+        } else {
+            // Match literal character
+            if (*format != *str) {
+                va_end(args);
+                return matched;
+            }
+            str++;
+        }
+        format++;
+    }
+
+    va_end(args);
+    return matched;
 }

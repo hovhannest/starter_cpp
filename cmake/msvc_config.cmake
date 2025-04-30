@@ -30,6 +30,11 @@ if(MSVC AND USE_VC_LTL)
     # Set Windows 7 as minimum target
     set(WindowsTargetPlatformMinVersion "6.1.7601.0" CACHE STRING "Target Windows platform minimum version")
     
+    # Configure VC-LTL optimization options
+    set(DisableAdvancedSupport "true" CACHE BOOL "Disable advanced CRT features")
+    set(CleanImport "true" CACHE BOOL "Remove unnecessary imports")
+    set(UseRemotePDB "false" CACHE BOOL "Disable remote PDB")
+    
     # Force VC-LTL root path
     set(VC_LTL_Root ${VC_LTL_PATH})
     
@@ -67,6 +72,8 @@ function(configure_msvc_project TARGET_NAME)
             $<$<CONFIG:MinSizeRel>:/Gm->       # Disable minimal rebuild
             $<$<CONFIG:MinSizeRel>:/guard:cf-> # Disable Control Flow Guard
             $<$<CONFIG:MinSizeRel>:/GA>        # Optimize for Windows Application
+            $<$<CONFIG:MinSizeRel>:/TC>        # Compile as C code
+            $<$<CONFIG:MinSizeRel>:/Zc:threadSafeInit->  # Disable thread-safe statics
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_INLINE>   # Use minimal printf
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_MATH_INLINE>    # Minimal math
             $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STRING_INLINE>  # Minimal string ops
