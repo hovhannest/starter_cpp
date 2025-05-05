@@ -1,3 +1,9 @@
+
+# Set MSVC runtime before any targets
+if(MSVC)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # VC-LTL Configuration
 if(MSVC AND USE_VC_LTL)
     # Allow custom VC-LTL path
@@ -106,3 +112,31 @@ function(configure_msvc_project TARGET_NAME)
         endif()
     endif()
 endfunction()
+
+# Force MinSizeRel as the default build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE MinSizeRel CACHE STRING "Build type" FORCE)
+endif()
+
+# Global optimization flags for size
+if(MSVC)
+    add_compile_options(
+        $<$<CONFIG:Release,MinSizeRel>:/O1>
+        $<$<CONFIG:Release,MinSizeRel>:/Os>
+        $<$<CONFIG:Release,MinSizeRel>:/GL>
+        $<$<CONFIG:Release,MinSizeRel>:/GS->
+    )
+    add_link_options(
+        $<$<CONFIG:Release,MinSizeRel>:/LTCG>
+        $<$<CONFIG:Release,MinSizeRel>:/OPT:REF>
+        $<$<CONFIG:Release,MinSizeRel>:/OPT:ICF>
+        $<$<CONFIG:Release,MinSizeRel>:/MANIFEST:NO>
+        $<$<CONFIG:Release,MinSizeRel>:/LARGEADDRESSAWARE:NO>
+    )
+
+    # Force IPO for all targets in MinSizeRel
+    if(LTO_SUPPORTED)
+        set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            PROPERTY INTERPROCEDURAL_OPTIMIZATION_MINSIZE_REL TRUE)
+    endif()
+endif()
