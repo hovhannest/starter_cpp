@@ -1,0 +1,27 @@
+cargo-features = ["profile-rustflags"]
+
+[package]
+name = "hello"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = 'abort'
+strip = true
+
+[profile.minsizerel]
+inherits = "release"     # Inherit from release profile
+opt-level = "z"         # Optimize aggressively for size
+lto = "fat"
+debug = false           # No debug info
+strip = "symbols"       # Most aggressive symbol stripping
+incremental = false     # Disable incremental compilation
+rpath = false          # Disable runtime path
+
+[build-dependencies]
+thunk-rs = { version = "0.3.3"}
