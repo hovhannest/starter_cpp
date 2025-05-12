@@ -19,12 +19,12 @@ fn main() {
     let alice_session = crypto::SessionKey::generate();
     let bob_session = crypto::SessionKey::generate();
     
-    // Store public keys before consuming the sessions
-    let alice_public = *alice_session.public_key();
-    let bob_public = *bob_session.public_key();
+    // Store keys before consuming the sessions
+    let alice_key = *alice_session.key();
+    let bob_key = *bob_session.key();
     
-    let alice_shared = alice_session.exchange(&bob_public);
-    let bob_shared = bob_session.exchange(&alice_public);
+    let alice_shared = alice_session.exchange(&bob_key);
+    let bob_shared = bob_session.exchange(&alice_key);
     
     if alice_shared == bob_shared {
         println!("✓ Key exchange successful (shared secret first bytes: {:02x}{:02x}{:02x}..)",
