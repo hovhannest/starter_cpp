@@ -26,3 +26,25 @@ This command:
 - Enables additional size optimizations for std library (`optimize_for_size`)
 - Uses immediate abort on panic for smaller binary size (`panic_immediate_abort`)
 - Uses minimal size release profile (`--profile minsizerel`)
+
+## Running Tests
+
+To run unit tests using the nightly toolchain:
+```bash
+cargo +nightly test
+```
+
+To run tests with output:
+```bash
+cargo +nightly test -- --nocapture
+```
+
+To run a specific test:
+```bash
+cargo +nightly test test_name
+```
+
+To run tests in a specific module:
+```bash
+cargo +nightly test module_name::
+```

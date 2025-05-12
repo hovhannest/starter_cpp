@@ -2,7 +2,8 @@
 rustflags = [
     "-C", "target-feature=+crt-static",
     "-C", "link-arg=-Wl,--gc-sections",  # Remove unused sections
-    "-C", "panic=abort"                  # Required for panic_immediate_abort
+    "-C", "panic=abort",                 # Required for panic_immediate_abort
+    "-Z", "panic_abort_tests"            # Enable panic abort in tests
 ]
 
 [profile.minsizerel]
