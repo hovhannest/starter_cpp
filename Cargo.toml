@@ -6,6 +6,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+ring = "0.17"
+x25519-dalek = "2.0"
+aes-gcm = { version = "0.10", features = ["std"] }
+rand = "0.9"
+rand_core = { version = "0.6", features = ["std"] }
 
 [profile.release]
 opt-level = 3
