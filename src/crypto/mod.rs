@@ -61,9 +61,17 @@ impl SessionKey {
 
     /// Derive a shared key using HKDF
     pub fn exchange(self, other_key: &[u8; 32]) -> [u8; 32] {
-        let hkdf = Hkdf::<Sha256>::new(Some(other_key), &self.key);
+        // Use smaller key as salt and larger key as IKM for consistent ordering
+        let (salt, ikm) = if self.key <= *other_key {
+            (&self.key[..], &other_key[..])
+        } else {
+            (&other_key[..], &self.key[..])
+        };
+
+        let hkdf = Hkdf::<Sha256>::new(Some(salt), ikm);
         let mut okm = [0u8; 32];
-        hkdf.expand(&[], &mut okm).expect("HKDF expand failed");
+        // Use fixed info for consistency
+        hkdf.expand(b"session_key", &mut okm).expect("HKDF expand failed");
         okm
     }
 }
