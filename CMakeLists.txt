@@ -1,112 +1,130 @@
 cmake_minimum_required(VERSION 3.15)
-project(minimal_runtime LANGUAGES CXX)
+project(medit VERSION 0.0.1 LANGUAGES CXX)
 
-# Option to control VC-LTL usage
-option(USE_VC_LTL "Use VC-LTL to reduce binary size" ON)
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Download and configure VC-LTL first
-if(MSVC AND USE_VC_LTL)
-    # Allow custom VC-LTL path
-    set(VC_LTL_PATH "${CMAKE_CURRENT_BINARY_DIR}/_deps/VC-LTL" CACHE PATH "Path to VC-LTL")
+# Export compile commands for tooling
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-    # Download VC-LTL if not found
-    if(NOT EXISTS "${VC_LTL_PATH}")
-        set(VC_LTL_VERSION "v5.2.1")
-        set(VC_LTL_URL "https://github.com/Chuyu-Team/VC-LTL5/releases/download/${VC_LTL_VERSION}/VC-LTL-Binary.7z")
-        
-        message(STATUS "Downloading VC-LTL ${VC_LTL_VERSION}")
-        
-        # Create _deps directory
-        file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/_deps")
-        file(MAKE_DIRECTORY ${VC_LTL_PATH})
-        
-        # Download and extract
-        file(DOWNLOAD "${VC_LTL_URL}" "${CMAKE_CURRENT_BINARY_DIR}/_deps/vc-ltl.7z" SHOW_PROGRESS)
-        
-        # Extract using cmake -E tar command
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E tar xf "${CMAKE_CURRENT_BINARY_DIR}/_deps/vc-ltl.7z"
-            WORKING_DIRECTORY ${VC_LTL_PATH}
-        )
-        
-        # Cleanup download
-        file(REMOVE "${CMAKE_CURRENT_BINARY_DIR}/_deps/vc-ltl.7z")
-    endif()
+# Option to build tests
+option(CMAKE_BUILD_TESTS "Build tests" ON)
 
-    # Set Windows 7 as minimum target
-    set(WindowsTargetPlatformMinVersion "6.1.7601.0" CACHE STRING "Target Windows platform minimum version")
-    
-    # Force VC-LTL root path
-    set(VC_LTL_Root ${VC_LTL_PATH})
-    
-    # Include VC-LTL cmake helper BEFORE any compiler settings
-    include("${VC_LTL_PATH}/VC-LTL helper for cmake.cmake")
+# Sanitizer options
+option(CMAKE_BUILD_ASAN "Build with AddressSanitizer" OFF)
+option(CMAKE_BUILD_TSAN "Build with ThreadSanitizer" OFF)
+option(CMAKE_BUILD_UBSAN "Build with UndefinedBehaviorSanitizer" OFF)
+option(CMAKE_BUILD_TIDY "Run clang-tidy during build" OFF)
+
+if(CMAKE_BUILD_ASAN AND CMAKE_BUILD_TSAN)
+    message(FATAL_ERROR "CMAKE_BUILD_ASAN and CMAKE_BUILD_TSAN are mutually exclusive.")
 endif()
 
-# Enable Link Time Optimization
-include(CheckIPOSupported)
-check_ipo_supported(RESULT LTO_SUPPORTED)
+if(CMAKE_BUILD_TIDY)
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if(CLANG_TIDY_EXE)
+        set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_EXE})
+    else()
+        message(WARNING "clang-tidy not found, CMAKE_BUILD_TIDY will be ignored.")
+    endif()
+endif()
 
-# Global compiler settings
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Find dependencies from Conan
+# These are automatically available via CMakeDeps generator
+# Example: uncomment when you add dependencies to conanfile.py
+# find_package(fmt REQUIRED)
+# find_package(spdlog REQUIRED)
 
-# Function to configure MSVC project settings
-function(configure_msvc_project TARGET_NAME)
-    if(MSVC)
-        # Set static runtime linking
-        set_property(TARGET ${TARGET_NAME} PROPERTY
-            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-        
-        # Add MinSizeRel and RelWithDebInfo configurations
-        set(CMAKE_CONFIGURATION_TYPES "Debug;Release;MinSizeRel;RelWithDebInfo"
-            CACHE STRING "Available build configurations" FORCE)
-        
-        # MinSizeRel specific optimizations for MSVC
-        target_compile_options(${TARGET_NAME} PRIVATE
-            $<$<CONFIG:MinSizeRel>:/O1>        # Minimize size
-            $<$<CONFIG:MinSizeRel>:/Os>        # Favor size over speed
-            $<$<CONFIG:MinSizeRel>:/GF>        # String pooling
-            $<$<CONFIG:MinSizeRel>:/Gy>        # Function-level linking
-            $<$<CONFIG:MinSizeRel>:/Gw>        # Optimize global data
-            $<$<CONFIG:MinSizeRel>:/GR->       # Disable RTTI
-            $<$<CONFIG:MinSizeRel>:/GL>        # Whole program optimization
-            $<$<CONFIG:MinSizeRel>:/Zc:inline> # Remove unreferenced COMDAT
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_INLINE>   # Use minimal printf
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_MATH_INLINE>    # Minimal math
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STRING_INLINE>  # Minimal string ops
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDLIB_INLINE>  # Minimal stdlib
-            $<$<CONFIG:MinSizeRel>:-D_CRTBLD>                # Only build essential CRT
-            $<$<CONFIG:MinSizeRel>:-D_UCRT_DISABLED_PRINT>   # Disable full printf support
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STREAMS>        # Disable stream support
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STDIO_ACCESS>   # Minimal stdio access
-            $<$<CONFIG:MinSizeRel>:-D_CRT_DISABLE_PERFCRIT_LOCKS> # Disable stdio locks
-            $<$<CONFIG:MinSizeRel>:-D_MINIMAL_CRT_INIT>   # Minimal CRT initialization
-            $<$<CONFIG:MinSizeRel>:-D_CRT_STARTUP_NO_HEAP>   # Disable heap initialization
-            $<$<CONFIG:MinSizeRel>:-D_CRT_VCCLRIT_NO_DEPRECATE> # Disable CRT security checks
-            $<$<CONFIG:MinSizeRel>:-D_NO_CRT_STARTUP_INIT>   # Skip full CRT initialization
-            $<$<CONFIG:MinSizeRel>:-D_NO_LIB_INIT>          # Skip library initialization
-            $<$<CONFIG:MinSizeRel>:-D_DISABLE_VECTOR_ANNOTATION> # Disable security annotations
-        )
-            
-        # MinSizeRel linker flags
-        target_link_options(${TARGET_NAME} PRIVATE
-            $<$<CONFIG:MinSizeRel>:/OPT:REF>           # Remove unused functions
-            $<$<CONFIG:MinSizeRel>:/OPT:ICF>           # Fold identical functions
-            $<$<CONFIG:MinSizeRel>:/INCREMENTAL:NO>
-            $<$<CONFIG:MinSizeRel>:/LTCG>              # Link time code generation
-            ) # Use only VC-LTL's CRT
+# Main library/executable
+add_executable(${PROJECT_NAME}
+    src/main.cpp
+)
 
-        # Enable LTO for MinSizeRel if supported
-        if(LTO_SUPPORTED)
-            set_property(TARGET ${TARGET_NAME} PROPERTY
-                INTERPROCEDURAL_OPTIMIZATION_MINSIZE_REL TRUE)
+# Link dependencies
+# target_link_libraries(${PROJECT_NAME} PRIVATE
+#     fmt::fmt
+#     spdlog::spdlog
+# )
+
+# Include directories
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+
+# Compiler warnings and sanitizers
+if(MSVC)
+    # Pure MSVC (not clang-cl)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(${PROJECT_NAME} PRIVATE /W4 /WX)
+    else()
+        # clang-cl: Clang with MSVC-compatible driver
+        target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
+        if(CMAKE_BUILD_ASAN)
+            target_compile_options(${PROJECT_NAME} PRIVATE /fsanitize=address)
+            # For clang-cl, we need to explicitly link the ASan runtime library
+            # Get the Clang resource directory
+            execute_process(
+                COMMAND ${CMAKE_CXX_COMPILER} --print-resource-dir
+                OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+            )
+            # Link the static ASan runtime library
+            target_link_libraries(${PROJECT_NAME} PRIVATE
+                "${CLANG_RESOURCE_DIR}/lib/windows/clang_rt.asan_dynamic-x86_64.lib"
+                "${CLANG_RESOURCE_DIR}/lib/windows/clang_rt.asan_dynamic_runtime_thunk-x86_64.lib"
+            )
+        endif()
+
+        if(CMAKE_BUILD_TSAN)
+            target_compile_options(${PROJECT_NAME} PRIVATE /fsanitize=thread)
+            target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=thread)
+        endif()
+
+        if(CMAKE_BUILD_UBSAN)
+            target_compile_options(${PROJECT_NAME} PRIVATE /fsanitize=undefined)
+            target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=undefined)
         endif()
     endif()
-endfunction()
+else()
+    # Unix-style compilers (GCC, Clang)
+    target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
-# Create executable
-add_executable(minimal_app src/main.cpp)
+    if(CMAKE_BUILD_ASAN)
+        target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+        target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+    endif()
 
-# Configure the project with optimization settings
-configure_msvc_project(minimal_app)
+    if(CMAKE_BUILD_TSAN)
+        target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=thread)
+        target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=thread)
+    endif()
+
+    if(CMAKE_BUILD_UBSAN)
+        target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=undefined)
+        target_link_options(${PROJECT_NAME} PRIVATE -fsanitize=undefined)
+    endif()
+endif()
+
+# Tests
+if(CMAKE_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
+
+# Installation
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+)
+
+install(DIRECTORY include/
+    DESTINATION include
+)

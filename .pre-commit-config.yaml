@@ -1,0 +1,83 @@
+repos:
+  # ----------------------------
+  # Core hygiene hooks
+  # ----------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: ['--markdown-linebreak-ext=md']
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args: ['--maxkb=1024']   # bump for binaries/libs if needed
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: detect-private-key
+
+  # ----------------------------
+  # Clang-format (style)
+  # ----------------------------
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v18.1.8
+    hooks:
+      - id: clang-format
+        types_or: [c, c++]
+        args: ['-style=file']
+
+  # ----------------------------
+  # CMake formatting & lint
+  # ----------------------------
+  - repo: https://github.com/cheshirekow/cmake-format-precommit
+    rev: v0.6.13
+    hooks:
+      - id: cmake-format
+      - id: cmake-lint
+
+  # ----------------------------
+  # License header enforcement
+  # ----------------------------
+  #- repo: https://github.com/fsfe/reuse-tool
+  #  rev: v3.0.2
+  #  hooks:
+  #    - id: reuse
+
+  # ----------------------------
+  # Git commit message lint
+  # ----------------------------
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v3.13.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # ----------------------------
+  # Shell / build script checks
+  # ----------------------------
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+
+  # ----------------------------
+  # Prevent accidental submodules
+  # ----------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: forbid-submodules
+
+  # ----------------------------
+  # Custom project-specific hooks
+  # ----------------------------
+  - repo: local
+    hooks:
+      - id: check-clang-tidy-tests
+        name: Check Clang-Tidy consistency for tests
+        entry: python scripts/check_clang_tidy_tests.py
+        language: python
+        files: \.clang-tidy(-tests)?$
+        pass_filenames: false

@@ -1,0 +1,203 @@
+---
+# clang-tidy configuration - comprehensive, non-weakened set
+# Aligned to xmain/src coding standard while re-adding non-conflicting checks.
+# NOTE: Use targeted NOLINT(check-name) with justification for exceptions.
+
+Checks: >
+  -*,
+  # =====================================
+  # CLANG STATIC ANALYZER (core + security)
+  # =====================================
+  clang-analyzer-*,
+  clang-analyzer-security.*,
+
+  # =====================================
+  # BUGPRONE (logic pitfalls)
+  # =====================================
+  bugprone-*,
+  bugprone-assignment-in-if-condition,
+  bugprone-switch-missing-default,
+
+  # =====================================
+  # PERFORMANCE (general perf correctness)
+  # =====================================
+  performance-*,
+
+  # =====================================
+  # MODERNIZE (safe modernization)
+  # =====================================
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-deprecated-headers,
+  modernize-use-nodiscard,
+  modernize-use-emplace,
+  modernize-make-unique,
+  modernize-make-shared,
+  modernize-use-auto,
+  modernize-loop-convert,
+  modernize-use-using,
+  modernize-use-noexcept,
+  modernize-use-default-member-init,
+  modernize-use-equals-default,
+  modernize-use-equals-delete,
+
+  # =====================================
+  # C++ CORE GUIDELINES
+  # =====================================
+  cppcoreguidelines-*,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  cppcoreguidelines-avoid-c-arrays,
+  cppcoreguidelines-interfaces-global-init,
+  cppcoreguidelines-virtual-class-destructor,
+  cppcoreguidelines-avoid-multiple,
+  cppcoreguidelines-avoid-non-const-global-variables,
+  cppcoreguidelines-non-private-member-variables-in-classes,
+  cppcoreguidelines-init-variables,
+  cppcoreguidelines-narrowing-conversions,
+  cppcoreguidelines-slicing,
+  cppcoreguidelines-special-member-functions,
+
+  # =====================================
+  # READABILITY
+  # =====================================
+  readability-*,
+  -readability-braces-around-statements,
+  readability-identifier-naming,
+  readability-misleading-indentation,
+  readability-container-size-empty,
+  readability-simplify-boolean-expr,
+  readability-static-accessed-through-instance,
+  readability-const-return-type,
+  readability-redundant-control-flow,
+  readability-redundant-member-init,
+  readability-redundant-string-cstr,
+  readability-else-after-return,
+  readability-implicit-bool-conversion,
+  readability-named-parameter,
+  readability-isolate-declaration,
+  readability-inconsistent-declaration-parameter-name,
+
+  # =====================================
+  # CERT / HICPP / MISC
+  # =====================================
+  hicpp-avoid-goto,
+  cert-err33-c,
+  cert-err34-c,
+  cert-dcl21-cpp,
+  cert-oop58-cpp,
+  misc-no-recursion,
+  misc-unused-parameters,
+  misc-static-assert,
+  misc-include-cleaner,
+
+  # =====================================
+  # LLVM STYLE (headers / includes)
+  # =====================================
+  llvm-header-guard,
+  llvm-include-order
+
+WarningsAsErrors: >
+  clang-analyzer-*,
+  clang-analyzer-security.*,
+  bugprone-use-after-move,
+  bugprone-assert-side-effect,
+  bugprone-virtual-near-miss,
+  bugprone-assignment-in-if-condition,
+  cppcoreguidelines-pro-type-cstyle-cast,
+  llvm-header-guard,
+  cert-err33-c,
+  cert-dcl21-cpp
+
+HeaderFilterRegex: '.*'
+FormatStyle: file
+
+CheckOptions:
+  # =====================================
+  # IDENTIFIER NAMING (xmain/src style)
+  # =====================================
+
+  # Classes: PascalCase (e.g., MainWindow, TreeModel, DockWindow)
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+
+  # Structs: PascalCase (e.g., ConfigData, NodeInfo)
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+
+  # Enums: PascalCase (e.g., ErrorCode, State)
+  - key: readability-identifier-naming.EnumCase
+    value: CamelCase
+
+  # Enum constants: PascalCase (e.g., Socket_Disconnected, R0, XFlipR0)
+  - key: readability-identifier-naming.EnumConstantCase
+    value: CamelCase
+
+  # Namespaces: PascalCase (e.g., Fw, Core, GUI, Threading)
+  - key: readability-identifier-naming.NamespaceCase
+    value: CamelCase
+
+  # Methods: camelBack (e.g., getRootNode(), setDockWindow(), hasChildren())
+  - key: readability-identifier-naming.MethodCase
+    value: camelBack
+
+  # Functions: camelBack (e.g., parseCommand(), getValue())
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+
+  # Member variables: m_ prefix + camelBack (e.g., m_pDockWindow, m_isTemporary)
+  - key: readability-identifier-naming.MemberCase
+    value: camelBack
+  - key: readability-identifier-naming.MemberPrefix
+    value: 'm_'
+
+  # Allow member prefixes: m_p (pointer), m_b (bool), m_is (bool), s_ (static)
+  - key: readability-identifier-naming.MemberIgnoredRegexp
+    value: '^(m_p[A-Z].*|m_b[A-Z].*|m_is[A-Z].*|s_[a-zA-Z].*)$'
+
+  # Local variables: camelBack (e.g., releaseType, customBuildInfo)
+  - key: readability-identifier-naming.LocalVariableCase
+    value: camelBack
+
+  # Parameters: camelBack, often with p prefix for pointers (e.g., pChild)
+  - key: readability-identifier-naming.ParameterCase
+    value: camelBack
+
+  # Global constants: camelBack (e.g., expandPathEpsilon1, minSegCount)
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: camelBack
+
+  # Typedefs: T prefix allowed (e.g., TStrMap, T2DStrMap)
+  - key: readability-identifier-naming.TypedefCase
+    value: CamelCase
+  - key: readability-identifier-naming.TypedefIgnoredRegexp
+    value: '^T[A-Z].*$'
+
+  # Type aliases (using): CamelCase
+  - key: readability-identifier-naming.TypeAliasCase
+    value: CamelCase
+
+  # =====================================
+  # HEADER GUARDS
+  # =====================================
+  # Style: __CLASSNAME_H__ or NAMESPACE_CLASSNAME_H_
+  - key: llvm-header-guard.HeaderGuardPattern
+    value: '^(__[A-Z0-9_]+__|[A-Z0-9_]+_)$'
+
+  # =====================================
+  # CONTROL FLOW / STATEMENTS
+  # =====================================
+  # Switch/default discipline
+  - key: bugprone-switch-missing-default.StrictMode
+    value: true
+
+  # Braces required for single statements
+  - key: readability-braces-around-statements.ShortStatementsBraces
+    value: false
+
+  # Disallow C-style casts entirely
+  - key: cppcoreguidelines-pro-type-cstyle-cast.StrictMode
+    value: true
+
+  # Enforce include order: main header first
+  - key: llvm-include-order.Strict
+    value: true

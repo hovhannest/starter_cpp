@@ -1,0 +1,88 @@
+---
+# Minimal, human-maintainable config derived from clang-format-2.txt
+BasedOnStyle: Google
+Language: Cpp
+
+# Indentation / whitespace (diverges from Google)
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+PPIndentWidth: -1
+
+# Line width (diverges from Google)
+ColumnLimit: 130
+
+# Braces & wrapping (diverges from Google)
+BreakBeforeBraces: Allman
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: true
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  BeforeLambdaBody: true
+  BeforeWhile: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: false
+
+# Includes (diverges from Google)
+SortIncludes: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^\<ext/.*\.h\>'
+    Priority: 2
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: '^\<.*\.h\>'
+    Priority: 1
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: '^\<.*'
+    Priority: 2
+    SortPriority: 0
+    CaseSensitive: false
+  - Regex: '.*'
+    Priority: 3
+    SortPriority: 0
+    CaseSensitive: false
+IncludeIsMainRegex: '(\-_)?$'
+
+# Requires / inheritance (diverges from Google)
+IndentRequiresClause: true
+BreakInheritanceList: BeforeComma
+
+# Namespaces (diverges from Google)
+ShortNamespaceLines: 20
+
+# Comments & raw strings (diverges from Google)
+ReflowComments: false
+SpacesInLineCommentPrefix:
+  Minimum: 1
+  Maximum: 0
+RawStringFormats:
+  - Language: Cpp
+    Delimiters: [cc, CC, cpp, Cpp, CPP, 'c++', 'C++']
+    CanonicalDelimiter: ''
+    BasedOnStyle: google
+
+ForEachMacros: [foreach, Q_FOREACH, BOOST_FOREACH]
+AttributeMacros: [__capability]
+WhitespaceSensitiveMacros:
+  - STRINGIZE
+  - PP_STRINGIZE
+  - BOOST_PP_STRINGIZE
+  - NS_SWIFT_NAME
+  - CF_SWIFT_NAME
+
+# Heuristics / other
+RemoveBracesLLVM: true
+Standard: Auto

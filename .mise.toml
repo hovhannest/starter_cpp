@@ -1,0 +1,104 @@
+[tools]
+cmake = "4.2.3"
+ninja = "1.13.0"
+"github:conan-io/conan" = "2.25.2"
+"github:llvm/llvm-project" = "llvmorg-21.1.8"
+python = "3.14.3"
+
+[env]
+# Conan configuration - keep everything project-local
+CONAN_USER_HOME = "{{config_root}}/.conan2"
+CONAN_HOME = "{{config_root}}/.conan2"
+
+# Build system configuration
+COMPILER = "clang"
+CMAKE_GENERATOR = "Ninja"
+CMAKE_BUILD_TYPE = "Release"
+PLATFORM = "windows"
+
+# Sanitizer and Test configurations
+CMAKE_BUILD_TESTS = "ON"
+CMAKE_BUILD_TIDY  = "ON"
+CMAKE_BUILD_ASAN  = "ON"
+CMAKE_BUILD_TSAN  = "OFF"
+CMAKE_BUILD_UBSAN = "OFF"
+
+CONAN_PROFILE = "{{env.PLATFORM | lower}}-{{env.COMPILER}}-{{env.CMAKE_BUILD_TYPE | lower}}"
+
+# Force compilers for CMake + Conan
+CC = "clang-cl"
+CXX = "clang-cl"
+LD = "lld-link"
+
+# Avoid CMake guessing MSVC cl.exe
+CMAKE_C_COMPILER = "clang-cl"
+CMAKE_CXX_COMPILER = "clang-cl"
+
+[tasks.bootstrap]
+description = "Install and configure build dependencies"
+run = [
+  # Verify installations
+  "python -m pip install --upgrade pip",
+  "python -m pip install --upgrade pre-commit",
+  "pre-commit install",
+  "cmake --version",
+  "ninja --version",
+  "conan --version",
+  "clang --version"
+]
+
+[tasks.setup-conan]
+description = "Sync local profiles to Conan home"
+depends = ["bootstrap"]
+run = [
+  "cmake -E make_directory {{env.CONAN_HOME}}/profiles",
+  "cmake -E copy_directory profiles {{env.CONAN_HOME}}/profiles",
+  "conan profile list"
+]
+
+[tasks.clean]
+description = "Clean build artifacts"
+run = [
+  "cmake -E rm -rf build"
+]
+
+[tasks.clean-all]
+description = "Clean build artifacts and caches"
+run = [
+  "cmake -E rm -rf build .conan2"
+]
+
+[tasks.install-deps]
+description = "Install C++ dependencies using Conan"
+depends = ["setup-conan"]
+run = [
+  "conan install . --build=missing --output-folder=. -pr:b={{env.CONAN_PROFILE}} -pr:h={{env.CONAN_PROFILE}}"
+]
+
+[tasks.configure]
+description = "Configure CMake build"
+depends = ["install-deps"]
+run = [
+  "cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE={{env.CMAKE_BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=build/{{env.CMAKE_BUILD_TYPE}}/generators/conan_toolchain.cmake -DCMAKE_BUILD_ASAN={{env.CMAKE_BUILD_ASAN}} -DCMAKE_BUILD_TSAN={{env.CMAKE_BUILD_TSAN}} -DCMAKE_BUILD_UBSAN={{env.CMAKE_BUILD_UBSAN}} -DCMAKE_BUILD_TESTS={{env.CMAKE_BUILD_TESTS}} -DCMAKE_BUILD_TIDY={{env.CMAKE_BUILD_TIDY}}"
+]
+
+[tasks.clean-build]
+description = "Clean and build the project"
+depends = ["clean", "configure"]
+run = [
+  "cmake --build build"
+]
+
+[tasks.build]
+description = "Build the project (incremental build)"
+depends = []
+run = [
+  "cmake --build build"
+]
+
+[tasks.test]
+description = "Run tests"
+depends = ["build"]
+run = [
+  "ctest --test-dir build --output-on-failure"
+]

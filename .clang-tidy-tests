@@ -1,0 +1,123 @@
+# clang-tidy configuration optimized for unit tests (gtest/gmock)
+# Goals:
+#  - Keep analyzers and correctness checks strong
+#  - Reduce stylistic/perf noise that obscures test intent
+#  - Preserve naming consistency with production
+#  - Treat only critical issues as errors
+---
+InheritParentConfig: false
+Checks: >
+  -*,
+
+  # =====================================
+  # CLANG STATIC ANALYZER (core + security)
+  # =====================================
+  clang-analyzer-*,
+  clang-analyzer-security.*,
+
+  # =====================================
+  # BUGPRONE (logic pitfalls)
+  # =====================================
+  bugprone-*,
+  # High-signal addition for tests:
+  bugprone-unchecked-optional-access,
+
+  # =====================================
+  # PERFORMANCE (only correctness-relevant)
+  # =====================================
+  performance-for-range-copy,
+  performance-move-const-arg,
+
+  # =====================================
+  # MODERNIZE (balanced set, avoids churn)
+  # =====================================
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-deprecated-headers,
+  modernize-use-nodiscard,
+  modernize-use-emplace,
+  modernize-make-unique,
+  modernize-make-shared,
+  modernize-loop-convert,
+  modernize-use-using,
+  modernize-use-noexcept,
+  # NOTE: Skipped modernize-use-auto to avoid noisy suggestions in tests.
+
+  # =====================================
+  # C++ CORE GUIDELINES (narrow, high value)
+  # =====================================
+  cppcoreguidelines-pro-type-member-init,
+  cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+  cppcoreguidelines-pro-type-const-cast,
+  cppcoreguidelines-pro-type-cstyle-cast,
+
+  # =====================================
+  # READABILITY (narrow to clarity/safety)
+  # =====================================
+  readability-braces-around-statements,
+  readability-implicit-bool-conversion,
+  readability-misleading-indentation,
+  readability-redundant-control-flow,
+
+  # =====================================
+  # CERT / HICPP / MISC (selective)
+  # =====================================
+  hicpp-avoid-goto,
+  cert-err33-c,
+  cert-err34-c,
+  # Removed: misc-no-recursion (too strict for tests)
+  misc-unused-parameters,
+  misc-static-assert,
+  misc-include-cleaner,
+  misc-non-private-member-variables-in-classes,
+
+  # =====================================
+  # LLVM STYLE (headers)
+  # =====================================
+  llvm-header-guard,
+  llvm-include-order
+
+# Treat only critical correctness issues as errors in tests.
+WarningsAsErrors: >
+  bugprone-use-after-move,
+  bugprone-assert-side-effect,
+  bugprone-unchecked-optional-access,
+  clang-analyzer-core.*
+
+# Only match test files; adjust if your patterns differ.
+# Common globs include: .*(_test|Test)\.(cc|cpp|cxx)$ or /tests?/
+HeaderFilterRegex: '.*(test|tests|_test|Test).*'
+
+# Use the repository's clang-format settings for fix-its.
+FormatStyle: file
+
+CheckOptions:
+  # ---- Naming rules aligned with production ----
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.MethodCase
+    value: camelBack
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
+  - key: readability-identifier-naming.MemberCase
+    value: camelBack
+  - key: readability-identifier-naming.MemberPrefix
+    value: 'm_'
+  - key: readability-identifier-naming.LocalVariableCase
+    value: camelBack
+  - key: readability-identifier-naming.ParameterCase
+    value: camelBack
+
+  # ---- Header guards pattern (LLVM style example) ----
+  - key: llvm-header-guard.HeaderGuardPattern
+    value: '^(__[A-Z0-9_]+__[A-Z0-9_]+_)$'
+
+  # ---- Pragmatic relaxations for tests ----
+  - key: bugprone-switch-missing-default.StrictMode
+    value: 'false'
+  - key: readability-braces-around-statements.ShortStatementsBraces
+    value: 'true'
+  - key: cppcoreguidelines-pro-type-cstyle-cast.StrictMode
+    value: 'true'
